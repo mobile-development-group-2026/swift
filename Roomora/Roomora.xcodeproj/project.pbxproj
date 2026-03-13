@@ -15,9 +15,22 @@
 		2715B09B2F637EF500FF286F /* Roomora.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Roomora.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		2715B10C2F63B4FB00FF286F /* Exceptions for "Roomora" folder in "Roomora" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 2715B09A2F637EF500FF286F /* Roomora */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		2715B09D2F637EF500FF286F /* Roomora */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				2715B10C2F63B4FB00FF286F /* Exceptions for "Roomora" folder in "Roomora" target */,
+			);
 			path = Roomora;
 			sourceTree = "<group>";
 		};
@@ -268,6 +281,7 @@
 				DEVELOPMENT_TEAM = DS7G4DV9NL;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Roomora/Info.plist;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -300,6 +314,7 @@
 				DEVELOPMENT_TEAM = DS7G4DV9NL;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Roomora/Info.plist;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;

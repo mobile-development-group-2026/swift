@@ -9,8 +9,8 @@ struct RoomoraApp: App {
 
   var body: some Scene {
     WindowGroup {
-      ContentView()
-        .environment(Clerk.shared)
+        ContentView()
+            .environment(Clerk.shared)
     }
   }
 }

@@ -14,17 +14,17 @@ struct AppButton: View {
         Button(action: action) {
             Text(title)
                 .font(.h4)
-                .foregroundStyle(AppColors.white)
+                .foregroundStyle(.white)
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 16)
                 .background(
                     RoundedRectangle(cornerRadius: 14)
-                        .fill(variant == .primary ? AppColors.purple500 : Color.clear)
+                        .fill(variant == .primary ? Color(.purple, 500) : Color.clear)
                 )
                 .overlay(
                     RoundedRectangle(cornerRadius: 14)
                         .stroke(
-                            variant == .secondary ? AppColors.purple500 : Color.clear,
+                            variant == .secondary ? Color(.purple, 500) : Color.clear,
                             lineWidth: 1.5
                         )
                 )

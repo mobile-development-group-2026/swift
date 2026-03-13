@@ -2,7 +2,7 @@ import SwiftUI
 
 struct PillBadge: View {
     let label: String
-    var dotColor: Color = AppColors.purple500
+    var dotColor: Color = Color(.purple, 500)
 
     var body: some View {
         HStack(spacing: 8) {
@@ -11,14 +11,14 @@ struct PillBadge: View {
                 .frame(width: 8, height: 8)
 
             Text(label)
-                .font(.body14)
-                .foregroundStyle(AppColors.white)
+                .font(.body14())
+                .foregroundStyle(.white)
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 10)
         .background(
             Capsule()
-                .stroke(AppColors.white.opacity(0.2), lineWidth: 1)
+                .stroke(.white.opacity(0.2), lineWidth: 1)
         )
     }
 }
