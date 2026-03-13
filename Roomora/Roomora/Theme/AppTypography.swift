@@ -22,10 +22,18 @@ enum AppFont {
 // extends Apple's Font type
 extension Font {
     // headings
-    static let h1 = AppFont.custom(.bold, size: 36)
-    static let h2 = AppFont.custom(.semiBold, size: 28)
-    static let h3 = AppFont.custom(.semiBold, size: 24)
-    static let h4 = AppFont.custom(.medium, size: 20)
+    static func h1(_ weight: AppFont.Weight = .bold) -> Font {
+        AppFont.custom(weight, size: 36)
+    }
+    static func h2(_ weight: AppFont.Weight = .semiBold) -> Font {
+        AppFont.custom(weight, size: 28)
+    }
+    static func h3(_ weight: AppFont.Weight = .semiBold) -> Font {
+        AppFont.custom(weight, size: 24)
+    }
+    static func h4(_ weight: AppFont.Weight = .medium) -> Font {
+        AppFont.custom(weight, size: 20)
+    }
 
     // body
     static func body18(_ weight: AppFont.Weight = .regular) -> Font {

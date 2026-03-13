@@ -13,7 +13,7 @@ struct AppButton: View {
     var body: some View {
         Button(action: action) {
             Text(title)
-                .font(.h4)
+                .font(.body18(.semiBold))
                 .foregroundStyle(.white)
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 16)
