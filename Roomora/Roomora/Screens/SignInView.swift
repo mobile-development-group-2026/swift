@@ -7,42 +7,129 @@ struct SignInView: View {
 
     @State private var email = ""
     @State private var password = ""
+    @State private var showPassword = false
     @State private var isLoading = false
     @State private var errorMessage: String?
 
     var body: some View {
-        ZStack {
-            Color(.purple, 900).ignoresSafeArea()
+        VStack(spacing: AppSpacing.lg) {
+            // Drag indicator
+            Capsule()
+                .fill(Color(.neutral, 400))
+                .frame(width: 40, height: 4)
+                .padding(.top, AppSpacing.sm)
 
             ScrollView {
                 VStack(spacing: AppSpacing.lg) {
                     // Header
-                    VStack(spacing: AppSpacing.xs) {
-                        Text("Welcome back")
-                            .font(.h2())
-                            .foregroundStyle(.white)
+                    VStack(alignment: .leading, spacing: AppSpacing.xs) {
+                        HStack(spacing: AppSpacing.xs) {
+                            Text("Welcome")
+                                .font(.h2(.bold))
+                                .foregroundStyle(Color(.neutral, 900))
+                            Text("back")
+                                .font(.h2(.bold))
+                                .foregroundStyle(Color(.purple, 500))
+                        }
 
-                        Text("Sign in to your account")
+                        Text("Sign in to continue finding your perfect place.")
                             .font(.body14())
-                            .foregroundStyle(Color(.neutral, 500))
+                            .foregroundStyle(Color(.neutral, 600))
                     }
-                    .padding(.top, AppSpacing.xl)
+                    .frame(maxWidth: .infinity, alignment: .leading)
 
-                    // Email
-                    AppTextField(
-                        label: "Email address",
-                        placeholder: "Enter your email address",
-                        text: $email
-                    )
-                    .keyboardType(.emailAddress)
+                    // Social proof
+                    HStack(spacing: AppSpacing.xs) {
+                        HStack(spacing: -8) {
+                            ForEach(["M", "L", "A", "+"], id: \.self) { letter in
+                                Circle()
+                                    .fill(Color(.purple, 300))
+                                    .frame(width: 28, height: 28)
+                                    .overlay(
+                                        Text(letter)
+                                            .font(.body10(.semiBold))
+                                            .foregroundStyle(Color(.purple, 800))
+                                    )
+                                    .overlay(
+                                        Circle()
+                                            .stroke(.white, lineWidth: 2)
+                                    )
+                            }
+                        }
 
-                    // Password
-                    AppTextField(
-                        label: "Password",
-                        placeholder: "Enter your password",
-                        text: $password,
-                        isSecure: true
-                    )
+                        Text("**2,400+ students** found housing\nthrough Roomora this semester")
+                            .font(.body12())
+                            .foregroundStyle(Color(.neutral, 600))
+                    }
+
+                    // Email field
+                    VStack(alignment: .leading, spacing: AppSpacing.xs) {
+                        Text("EMAIL ADDRESS")
+                            .font(.body10(.semiBold))
+                            .foregroundStyle(Color(.neutral, 700))
+
+                        HStack(spacing: AppSpacing.sm) {
+                            Image(systemName: "envelope")
+                                .foregroundStyle(Color(.neutral, 500))
+                                .font(.body16())
+                            TextField("", text: $email, prompt: Text("you@university.edu").foregroundColor(Color(.neutral, 500)))
+                                .font(.body16())
+                                .foregroundStyle(Color(.neutral, 900))
+                                .keyboardType(.emailAddress)
+                                .autocorrectionDisabled()
+                                .textInputAutocapitalization(.never)
+                        }
+                        .padding(AppSpacing.md)
+                        .background(
+                            RoundedRectangle(cornerRadius: 12)
+                                .stroke(Color(.neutral, 300), lineWidth: 1)
+                        )
+                    }
+
+                    // Password field
+                    VStack(alignment: .leading, spacing: AppSpacing.xs) {
+                        Text("PASSWORD")
+                            .font(.body10(.semiBold))
+                            .foregroundStyle(Color(.neutral, 700))
+
+                        HStack(spacing: AppSpacing.sm) {
+                            Image(systemName: "lock")
+                                .foregroundStyle(Color(.neutral, 500))
+                                .font(.body16())
+
+                            Group {
+                                if showPassword {
+                                    TextField("", text: $password, prompt: Text("Enter your password").foregroundColor(Color(.neutral, 500)))
+                                } else {
+                                    SecureField("", text: $password, prompt: Text("Enter your password").foregroundColor(Color(.neutral, 500)))
+                                }
+                            }
+                            .font(.body16())
+                            .foregroundStyle(Color(.neutral, 900))
+                            .autocorrectionDisabled()
+                            .textInputAutocapitalization(.never)
+
+                            Button {
+                                showPassword.toggle()
+                            } label: {
+                                Image(systemName: showPassword ? "eye.slash" : "eye")
+                                    .foregroundStyle(Color(.neutral, 500))
+                                    .font(.body16())
+                            }
+                        }
+                        .padding(AppSpacing.md)
+                        .background(
+                            RoundedRectangle(cornerRadius: 12)
+                                .stroke(Color(.neutral, 300), lineWidth: 1)
+                        )
+
+                        HStack {
+                            Spacer()
+                            Button("Forgot password?") {}
+                                .font(.body14(.semiBold))
+                                .foregroundStyle(Color(.purple, 500))
+                        }
+                    }
 
                     // Error message
                     if let errorMessage {
@@ -51,28 +138,33 @@ struct SignInView: View {
                             .foregroundStyle(Color(.red, 500))
                     }
 
-                    // Submit button
+                    // Sign In button
                     AppButton(
-                        title: isLoading ? "Loading..." : "Continue",
+                        title: isLoading ? "Signing in..." : "Sign In  →",
                         variant: .primary
                     ) {
                         Task { await signIn() }
                     }
 
-                    // Switch to sign up
+                    // Sign up link
                     HStack(spacing: AppSpacing.xxs) {
                         Text("Don't have an account?")
                             .font(.body14())
                             .foregroundStyle(Color(.neutral, 500))
-                        Button("Sign up") {
+                        Button("Sign up free") {
                             dismiss()
                         }
                         .font(.body14(.semiBold))
-                        .foregroundStyle(Color(.purple, 400))
+                        .foregroundStyle(Color(.purple, 500))
                     }
                 }
                 .padding(.horizontal, AppSpacing.lg)
             }
+        }
+        .background(.white)
+        .tint(Color(.neutral, 900))
+        .onTapGesture {
+            UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
         }
     }
 

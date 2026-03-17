@@ -16,13 +16,16 @@ struct ContentView: View {
       }
     }
     .prefetchClerkImages()
-    .sheet(isPresented: $showSignUp) {
+    .fullScreenCover(isPresented: $showSignUp) {
       SignUpView()
         .environment(Clerk.shared)
     }
     .sheet(isPresented: $showSignIn) {
       SignInView()
         .environment(Clerk.shared)
+        .presentationDetents([.fraction(0.65)])
+        .presentationCornerRadius(24)
+        .presentationBackground(.white)
     }
   }
 }
