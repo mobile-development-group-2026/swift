@@ -8,8 +8,13 @@ struct RoomoraApp: App {
   }
 
   var body: some Scene {
+    // creates the app's window. Everything inside this is what appears on screen.
     WindowGroup {
+        // this is the root view
         ContentView()
+            // injects the Clerk authentication instance into the environment.
+            // This is why any child view anywhere in the app can do
+            // @Environment(Clerk.self) var clerk and it works
             .environment(Clerk.shared)
     }
   }
