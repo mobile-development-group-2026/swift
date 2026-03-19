@@ -7,7 +7,7 @@ class VerifyEmailViewModel {
     var isLoading = false
     var errorMessage: String?
 
-    /// Returns `true` if verification + API sync succeeded and the view should dismiss.
+    /// Returns `true` if verification + API sync worked and view gets dismissed
     func verify(
         clerk: Clerk,
         role: UserRole,

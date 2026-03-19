@@ -1,44 +1,33 @@
 import Foundation
 import ClerkKit
 
-actor APIClient {
+class APIClient {
     static let shared = APIClient()
     private let baseURL = "https://roomora-api.onrender.com/api/v1"
 
-    /// Syncs  Clerk user to the rails backend, stores role and profile info.
-    func syncUser(
-        clerk: Clerk,
-        role: String,
-        firstName: String,
-        lastName: String,
-        email: String,
-        phone: String?
-    ) async throws -> SyncResponse {
-        var body: [String: Any] = [
-            "role": role,
-            "first_name": firstName,
-            "last_name": lastName,
-            "email": email
-        ]
-        if let phone, !phone.isEmpty {
-            body["phone"] = phone
-        }
-
-        let data = try await request(
-            method: "POST",
-            path: "/auth/sync",
-            body: ["user": body],
-            clerk: clerk
-        )
-        let decoded = try JSONDecoder.api.decode(DataWrapper<SyncResponse>.self, from: data)
-        return decoded.data
+    func get(path: String, clerk: Clerk) async throws -> Data {
+        try await request(method: "GET", path: path, clerk: clerk)
     }
 
-    /// Grabs current user's profile data from  backend.
-    func fetchProfile(clerk: Clerk) async throws -> SyncResponse {
-        let data = try await request(method: "GET", path: "/profile", clerk: clerk)
-        let decoded = try JSONDecoder.api.decode(DataWrapper<SyncResponse>.self, from: data)
-        return decoded.data
+    func post(path: String, body: [String: Any], clerk: Clerk) async throws -> Data {
+        try await request(method: "POST", path: path, body: body, clerk: clerk)
+    }
+
+    func put(path: String, body: [String: Any], clerk: Clerk) async throws -> Data {
+        try await request(method: "PUT", path: path, body: body, clerk: clerk)
+    }
+
+    func delete(path: String, clerk: Clerk) async throws -> Data {
+        try await request(method: "DELETE", path: path, clerk: clerk)
+    }
+
+    func decodeData<T: Decodable>(_ type: T.Type, from data: Data) throws -> T {
+        let json = try JSONSerialization.jsonObject(with: data) as? [String: Any]
+        guard let inner = json?["data"] else {
+            throw APIError.invalidResponse
+        }
+        let innerData = try JSONSerialization.data(withJSONObject: inner)
+        return try JSONDecoder.api.decode(T.self, from: innerData)
     }
 
     private func request(
@@ -55,7 +44,6 @@ actor APIClient {
         req.httpMethod = method
         req.setValue("application/json", forHTTPHeaderField: "Content-Type")
 
-        // Attach Clerk session token
         if let token = try? await clerk.session?.getToken() {
             req.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
         }
@@ -79,26 +67,7 @@ actor APIClient {
     }
 }
 
-struct SyncResponse: Codable {
-    let id: String
-    let clerkId: String
-    let role: String
-    let firstName: String
-    let lastName: String
-    let email: String
-    let phone: String?
-    let avatarUrl: String?
-    let bio: String?
-    let university: String?
-    let verified: Bool
-    let createdAt: String
-    let updatedAt: String
-}
-
-struct DataWrapper<T: Codable>: Codable {
-    let data: T
-}
-
+// Encodable & Decodable
 struct ErrorResponse: Codable {
     let error: String
 }
@@ -117,7 +86,6 @@ enum APIError: LocalizedError {
     }
 }
 
-// rails api works in snake_case
 extension JSONDecoder {
     static let api: JSONDecoder = {
         let decoder = JSONDecoder()

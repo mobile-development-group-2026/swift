@@ -51,7 +51,7 @@ struct ContentView: View {
                         .navigationBarHidden(true)
                 }
                 .environment(Clerk.shared)
-                .presentationDetents([.fraction(0.65)])
+                .presentationDetents([.fraction(0.65), .large])
                 .presentationCornerRadius(24)
                 .presentationBackground(.white)
             default:
