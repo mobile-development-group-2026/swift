@@ -35,6 +35,30 @@ extension APIClient {
     }
 }
 
+struct StudentProfileResponse: Codable {
+    let id: String
+    let university: String?
+    let major: String?
+    let age: Int?
+    let birthYear: Int?
+    let graduationYear: Int?
+    let bio: String?
+}
+
+struct LifestyleProfileResponse: Codable {
+    let id: String
+    let noiseLevel: Int?
+    let cleanlinessLevel: Int?
+    let sleepSchedule: String?
+    let smokingAllowed: Bool?
+    let petsAllowed: Bool?
+    let partiesAllowed: Bool?
+    let guestFrequency: Int?
+    let lifestyleTags: String?
+    let moveInDate: String?
+    let maxBudget: String?
+}
+
 struct SyncResponse: Codable {
     let id: String
     let clerkId: String
@@ -44,10 +68,10 @@ struct SyncResponse: Codable {
     let email: String
     let phone: String?
     let avatarUrl: String?
-    let bio: String?
-    let university: String?
     let verified: Bool
     let onboarded: Bool?
     let createdAt: String
     let updatedAt: String
+    let studentProfile: StudentProfileResponse?
+    let lifestyleProfile: LifestyleProfileResponse?
 }

@@ -1,4 +1,5 @@
 import SwiftUI
+import PhotosUI
 
 struct OnboardingStep1View: View {
     @Bindable var vm: OnboardingViewModel
@@ -16,34 +17,48 @@ struct OnboardingStep1View: View {
                         .foregroundStyle(Color(.purple, 500))
                     Text("A great profile gets you 3× more matches.")
                         .font(.body14())
-                        .foregroundStyle(Color(.neutral, 500))
+                        .foregroundStyle(Color(.neutral, 800))
                         .padding(.top, AppSpacing.xxs)
                 }
 
                 // profile photo
                 HStack(spacing: AppSpacing.md) {
-                    ZStack(alignment: .bottomTrailing) {
-                        Circle()
-                            .fill(Color(.neutral, 200))
-                            .frame(width: 80, height: 80)
-                            .overlay(
-                                Image(systemName: "person.fill")
-                                    .font(.system(size: 32))
-                                    .foregroundStyle(Color(.neutral, 400))
-                            )
-                            .overlay(
+                    PhotosPicker(selection: $vm.photoPickerItem, matching: .images) {
+                        ZStack(alignment: .bottomTrailing) {
+                            if let photo = vm.profilePhoto {
+                                photo
+                                    .resizable()
+                                    .scaledToFill()
+                                    .frame(width: 80, height: 80)
+                                    .clipShape(Circle())
+                                    .overlay(
+                                        Circle()
+                                            .stroke(Color(.purple, 500), lineWidth: 2)
+                                    )
+                            } else {
                                 Circle()
-                                    .stroke(Color(.purple, 500), lineWidth: 2)
-                            )
+                                    .fill(Color(.neutral, 200))
+                                    .frame(width: 80, height: 80)
+                                    .overlay(
+                                        Image(systemName: "person.fill")
+                                            .font(.system(size: 32))
+                                            .foregroundStyle(Color(.neutral, 400))
+                                    )
+                                    .overlay(
+                                        Circle()
+                                            .stroke(Color(.purple, 500), lineWidth: 2)
+                                    )
+                            }
 
-                        Circle()
-                            .fill(Color(.purple, 500))
-                            .frame(width: 24, height: 24)
-                            .overlay(
-                                Image(systemName: "plus")
-                                    .font(.system(size: 12, weight: .bold))
-                                    .foregroundStyle(.white)
-                            )
+                            Circle()
+                                .fill(Color(.purple, 500))
+                                .frame(width: 24, height: 24)
+                                .overlay(
+                                    Image(systemName: "plus")
+                                        .font(.system(size: 12, weight: .bold))
+                                        .foregroundStyle(.white)
+                                )
+                        }
                     }
 
                     VStack(alignment: .leading, spacing: AppSpacing.xxs) {
@@ -52,7 +67,66 @@ struct OnboardingStep1View: View {
                             .foregroundStyle(Color(.neutral, 900))
                         Text("A clear photo helps landlords and roommates feel confident about you.")
                             .font(.body12())
-                            .foregroundStyle(Color(.neutral, 500))
+                            .foregroundStyle(Color(.neutral, 800))
+                    }
+                }
+                .onChange(of: vm.photoPickerItem) {
+                    Task {
+                        if let data = try? await vm.photoPickerItem?.loadTransferable(type: Data.self),
+                           let uiImage = UIImage(data: data) {
+                            vm.profilePhoto = Image(uiImage: uiImage)
+                        }
+                    }
+                }
+
+                // university
+                VStack(alignment: .leading, spacing: AppSpacing.xs) {
+                    Text("UNIVERSITY")
+                        .font(.body10(.semiBold))
+                        .foregroundStyle(Color(.neutral, 700))
+
+                    TextField("e.g. Tec de Monterrey", text: $vm.university)
+                        .font(.body14())
+                        .foregroundStyle(Color(.neutral, 900))
+                        .padding(AppSpacing.md)
+                        .background(
+                            RoundedRectangle(cornerRadius: 12)
+                                .stroke(Color(.neutral, 300), lineWidth: 1)
+                        )
+                }
+
+                // birth year & graduation year
+                HStack(spacing: AppSpacing.md) {
+                    VStack(alignment: .leading, spacing: AppSpacing.xs) {
+                        Text("BIRTH YEAR")
+                            .font(.body10(.semiBold))
+                            .foregroundStyle(Color(.neutral, 700))
+
+                        TextField("e.g. 2003", text: $vm.birthYear)
+                            .font(.body14())
+                            .foregroundStyle(Color(.neutral, 900))
+                            .keyboardType(.numberPad)
+                            .padding(AppSpacing.md)
+                            .background(
+                                RoundedRectangle(cornerRadius: 12)
+                                    .stroke(Color(.neutral, 300), lineWidth: 1)
+                            )
+                    }
+
+                    VStack(alignment: .leading, spacing: AppSpacing.xs) {
+                        Text("GRADUATION YEAR")
+                            .font(.body10(.semiBold))
+                            .foregroundStyle(Color(.neutral, 700))
+
+                        TextField("e.g. 2027", text: $vm.graduationYear)
+                            .font(.body14())
+                            .foregroundStyle(Color(.neutral, 900))
+                            .keyboardType(.numberPad)
+                            .padding(AppSpacing.md)
+                            .background(
+                                RoundedRectangle(cornerRadius: 12)
+                                    .stroke(Color(.neutral, 300), lineWidth: 1)
+                            )
                     }
                 }
 
@@ -76,7 +150,7 @@ struct OnboardingStep1View: View {
                             if vm.bio.isEmpty {
                                 Text("Tell us about yourself, your interests, what you're studying...")
                                     .font(.body14())
-                                    .foregroundStyle(Color(.neutral, 400))
+                                    .foregroundStyle(Color(.neutral, 500))
                                     .padding(AppSpacing.md)
                                     .padding(.top, 8)
                                     .allowsHitTesting(false)
@@ -100,6 +174,7 @@ struct OnboardingStep1View: View {
                         ForEach(OnboardingViewModel.hobbies, id: \.self) { hobby in
                             let selected = vm.selectedHobbies.contains(hobby)
                             Button {
+                                UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
                                 vm.toggleHobby(hobby)
                             } label: {
                                 Text(hobby)
@@ -127,7 +202,6 @@ struct OnboardingStep1View: View {
     }
 }
 
-/// Wrapping layout that flows items to the next row when they don't fit.
 struct FlowLayout: Layout {
     var spacing: CGFloat = 8
 
@@ -173,4 +247,3 @@ struct FlowLayout: Layout {
         return rows
     }
 }
-
