@@ -6,12 +6,15 @@ struct VerifyEmailView: View {
     @Environment(\.dismiss) private var dismiss
 
     let email: String
+    let role: UserRole
+    let firstName: String
+    let lastName: String
+    let phone: String
 
     @State private var vm = VerifyEmailViewModel()
 
     var body: some View {
         VStack(alignment: .leading, spacing: AppSpacing.lg) {
-            // Header
             VStack(alignment: .leading, spacing: AppSpacing.xs) {
                 Text("Verify your")
                     .font(.h1())
@@ -42,7 +45,14 @@ struct VerifyEmailView: View {
                 variant: .primary
             ) {
                 Task {
-                    if await vm.verify(clerk: clerk) {
+                    if await vm.verify(
+                        clerk: clerk,
+                        role: role,
+                        firstName: firstName,
+                        lastName: lastName,
+                        email: email,
+                        phone: phone
+                    ) {
                         dismiss()
                     }
                 }

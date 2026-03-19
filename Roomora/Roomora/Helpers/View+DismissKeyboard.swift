@@ -1,7 +1,7 @@
 import SwiftUI
 
 extension View {
-    /// Dismisses the keyboard when the user taps outside of a text field.
+    /// Dismisses  keyboard when  user taps outside of a text field. (I got this snippet from Claude and it worked)
     func dismissKeyboardOnTap() -> some View {
         self.onTapGesture {
             UIApplication.shared.sendAction(

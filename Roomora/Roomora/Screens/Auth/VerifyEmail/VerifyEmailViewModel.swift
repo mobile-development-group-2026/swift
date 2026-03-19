@@ -7,8 +7,15 @@ class VerifyEmailViewModel {
     var isLoading = false
     var errorMessage: String?
 
-    /// Returns `true` if verification succeeded and the view should dismiss.
-    func verify(clerk: Clerk) async -> Bool {
+    /// Returns `true` if verification + API sync succeeded and the view should dismiss.
+    func verify(
+        clerk: Clerk,
+        role: UserRole,
+        firstName: String,
+        lastName: String,
+        email: String,
+        phone: String
+    ) async -> Bool {
         isLoading = true
         errorMessage = nil
         do {
@@ -17,6 +24,16 @@ class VerifyEmailViewModel {
                 return false
             }
             try await signUp.verifyEmailCode(code)
+
+            _ = try await APIClient.shared.syncUser(
+                clerk: clerk,
+                role: role.rawValue.lowercased(),
+                firstName: firstName,
+                lastName: lastName,
+                email: email,
+                phone: phone.isEmpty ? nil : phone
+            )
+
             isLoading = false
             return true
         } catch {

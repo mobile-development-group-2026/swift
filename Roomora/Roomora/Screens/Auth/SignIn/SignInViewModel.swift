@@ -21,8 +21,26 @@ class SignInViewModel {
                 identifier: email,
                 password: password
             )
+
+            guard signIn.status == .complete else {
+                isLoading = false
+                return false
+            }
+
+            // Sync with backend — finds existing user by clerk_id
+            if let user = clerk.user {
+                _ = try await APIClient.shared.syncUser(
+                    clerk: clerk,
+                    role: "", // ignored for existing users
+                    firstName: user.firstName ?? "",
+                    lastName: user.lastName ?? "",
+                    email: email,
+                    phone: nil
+                )
+            }
+
             isLoading = false
-            return signIn.status == .complete
+            return true
         } catch {
             errorMessage = error.localizedDescription
             isLoading = false

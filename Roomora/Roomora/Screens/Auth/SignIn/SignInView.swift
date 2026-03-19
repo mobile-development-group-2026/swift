@@ -9,7 +9,7 @@ struct SignInView: View {
 
     var body: some View {
         VStack(spacing: AppSpacing.lg) {
-            // Drag indicator
+            // drag thingy
             Capsule()
                 .fill(Color(.neutral, 400))
                 .frame(width: 40, height: 4)
@@ -17,7 +17,7 @@ struct SignInView: View {
 
             ScrollView {
                 VStack(spacing: AppSpacing.lg) {
-                    // Header
+                    // header
                     VStack(alignment: .leading, spacing: AppSpacing.xs) {
                         HStack(spacing: AppSpacing.xs) {
                             Text("Welcome")
@@ -34,9 +34,10 @@ struct SignInView: View {
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
 
-                    // Social proof
+                    // social proof
                     HStack(spacing: AppSpacing.xs) {
                         HStack(spacing: -8) {
+                            // this is just random lol
                             ForEach(["M", "L", "A", "+"], id: \.self) { letter in
                                 Circle()
                                     .fill(Color(.purple, 300))
@@ -58,7 +59,7 @@ struct SignInView: View {
                             .foregroundStyle(Color(.neutral, 600))
                     }
 
-                    // Email field
+                    // email
                     AppTextField(
                         icon: "envelope",
                         label: "EMAIL ADDRESS",
@@ -67,7 +68,7 @@ struct SignInView: View {
                         keyboardType: .emailAddress
                     )
 
-                    // Password field
+                    // password
                     VStack(alignment: .leading, spacing: AppSpacing.xs) {
                         AppTextField(
                             icon: "lock",
@@ -87,7 +88,7 @@ struct SignInView: View {
 
                     ErrorMessage(message: vm.errorMessage)
 
-                    // Sign In button
+                    // sign-in
                     AppButton(
                         title: vm.buttonTitle,
                         variant: .primary
@@ -99,7 +100,7 @@ struct SignInView: View {
                         }
                     }
 
-                    // Sign up link
+                    // sign-up
                     HStack(spacing: AppSpacing.xxs) {
                         Text("Don't have an account?")
                             .font(.body14())

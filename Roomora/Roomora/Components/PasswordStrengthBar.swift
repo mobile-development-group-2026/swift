@@ -5,9 +5,9 @@ struct PasswordStrengthBar: View {
 
     private var strength: Int {
         var score = 0
+        if password.count >= 3 { score += 1 }
         if password.count >= 4 { score += 1 }
-        if password.count >= 6 { score += 1 }
-        if password.count >= 8 { score += 1 }
+        if password.count >= 5 { score += 1 }
         if password.count >= 8 && password.rangeOfCharacter(from: .uppercaseLetters) != nil
             && password.rangeOfCharacter(from: .decimalDigits) != nil { score += 1 }
         return score
