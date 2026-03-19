@@ -10,19 +10,28 @@ struct ContentView: View {
     var body: some View {
         Group {
             if clerk.user != nil {
-                NavigationStack(path: $router.path) {
-                    HomeView()
-                        .navigationDestination(for: AppRoute.self) { route in
-                            switch route {
-                            case .home:
-                                HomeView()
-                            case .signUp:
-                                SignUpView()
-                                    .environment(Clerk.shared)
-                            case .designSystem:
-                                DesignSystemTestView()
+                if !session.isLoaded {
+                    ProgressView()
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        .background(.white)
+                } else if !session.isOnboarded {
+                    OnboardingView()
+                        .environment(Clerk.shared)
+                } else {
+                    NavigationStack(path: $router.path) {
+                        HomeView()
+                            .navigationDestination(for: AppRoute.self) { route in
+                                switch route {
+                                case .home:
+                                    HomeView()
+                                case .signUp:
+                                    SignUpView()
+                                        .environment(Clerk.shared)
+                                case .designSystem:
+                                    DesignSystemTestView()
+                                }
                             }
-                        }
+                    }
                 }
             } else {
                 NavigationStack(path: $router.path) {

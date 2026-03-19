@@ -47,6 +47,7 @@ struct SyncResponse: Codable {
     let bio: String?
     let university: String?
     let verified: Bool
+    let onboarded: Bool?
     let createdAt: String
     let updatedAt: String
 }

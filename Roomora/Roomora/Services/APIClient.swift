@@ -17,6 +17,10 @@ class APIClient {
         try await request(method: "PUT", path: path, body: body, clerk: clerk)
     }
 
+    func patch(path: String, body: [String: Any], clerk: Clerk) async throws -> Data {
+        try await request(method: "PATCH", path: path, body: body, clerk: clerk)
+    }
+
     func delete(path: String, clerk: Clerk) async throws -> Data {
         try await request(method: "DELETE", path: path, clerk: clerk)
     }
