@@ -38,6 +38,7 @@ class SignInViewModel {
                     phone: nil
                 )
                 session.profile = profile
+                session.isLoaded = true
             }
 
             isLoading = false

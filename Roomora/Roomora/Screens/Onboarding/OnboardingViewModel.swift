@@ -8,6 +8,25 @@ class OnboardingViewModel {
     var isLoading = false
     var errorMessage: String?
 
+    // Step 1 — Profile
+    var bio = ""
+    var selectedHobbies: Set<String> = []
+    let maxHobbies = 5
+
+    static let hobbies = [
+        "📚 Reading", "😴 Sleeping", "🎣 Fishing", "🌙 Star gazing",
+        "🧗 Rock climbing", "👾 Netflix", "🏃 Running", "🏕 Camping",
+        "🎮 Video games", "🍳 Cooking", "✍️ Journaling", "🥳 Partying"
+    ]
+
+    func toggleHobby(_ hobby: String) {
+        if selectedHobbies.contains(hobby) {
+            selectedHobbies.remove(hobby)
+        } else if selectedHobbies.count < maxHobbies {
+            selectedHobbies.insert(hobby)
+        }
+    }
+
     func nextStep() {
         if step < totalSteps - 1 {
             step += 1

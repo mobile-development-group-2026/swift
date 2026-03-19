@@ -11,9 +11,15 @@ struct ContentView: View {
         Group {
             if clerk.user != nil {
                 if !session.isLoaded {
-                    ProgressView()
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
-                        .background(.white)
+                    VStack(spacing: AppSpacing.md) {
+                        ProgressView()
+                            .tint(Color(.purple, 500))
+                        Text("Setting up your account...")
+                            .font(.body14())
+                            .foregroundStyle(Color(.neutral, 500))
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .background(.white)
                 } else if !session.isOnboarded {
                     OnboardingView()
                         .environment(Clerk.shared)
@@ -78,15 +84,21 @@ struct ContentView: View {
                     .transition(.scale.combined(with: .opacity))
             }
         }
-        .onChange(of: clerk.user != nil) {
+        .onChange(of: clerk.user?.id) { oldId, newId in
             router.popToRoot()
             router.dismissModal()
-        }
-        .task(id: clerk.user?.id) {
-            if clerk.user != nil {
-                await session.load(clerk: clerk)
-            } else {
+
+            if newId == nil {
                 session.clear()
+            } else if oldId == nil && !session.isLoaded {
+                // user just signed in and profile wasn't set by sign-in/sign-up flow
+                Task { await session.load(clerk: clerk) }
+            }
+        }
+        .task {
+            // on app launch, load profile if already signed in
+            if clerk.user != nil && !session.isLoaded {
+                await session.load(clerk: clerk)
             }
         }
     }
