@@ -3,6 +3,7 @@ import ClerkKit
 
 struct VerifyEmailView: View {
     @Environment(Clerk.self) private var clerk
+    @Environment(UserSession.self) private var session
     @Environment(\.dismiss) private var dismiss
 
     let email: String
@@ -47,6 +48,7 @@ struct VerifyEmailView: View {
                 Task {
                     if await vm.verify(
                         clerk: clerk,
+                        session: session,
                         role: role,
                         firstName: firstName,
                         lastName: lastName,

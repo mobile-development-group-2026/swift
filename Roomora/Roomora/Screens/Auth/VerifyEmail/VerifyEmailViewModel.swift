@@ -10,6 +10,7 @@ class VerifyEmailViewModel {
     /// Returns `true` if verification + API sync worked and view gets dismissed
     func verify(
         clerk: Clerk,
+        session: UserSession,
         role: UserRole,
         firstName: String,
         lastName: String,
@@ -25,7 +26,7 @@ class VerifyEmailViewModel {
             }
             try await signUp.verifyEmailCode(code)
 
-            _ = try await APIClient.shared.syncUser(
+            let profile = try await APIClient.shared.syncUser(
                 clerk: clerk,
                 role: role.rawValue.lowercased(),
                 firstName: firstName,
@@ -34,6 +35,7 @@ class VerifyEmailViewModel {
                 phone: phone.isEmpty ? nil : phone
             )
 
+            session.profile = profile
             isLoading = false
             return true
         } catch {

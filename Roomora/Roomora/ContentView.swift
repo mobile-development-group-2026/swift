@@ -4,6 +4,7 @@ import ClerkKitUI
 
 struct ContentView: View {
     @Environment(Clerk.self) private var clerk
+    @Environment(UserSession.self) private var session
     @State private var router = AppRouter()
 
     var body: some View {
@@ -71,6 +72,13 @@ struct ContentView: View {
         .onChange(of: clerk.user != nil) {
             router.popToRoot()
             router.dismissModal()
+        }
+        .task(id: clerk.user?.id) {
+            if clerk.user != nil {
+                await session.load(clerk: clerk)
+            } else {
+                session.clear()
+            }
         }
     }
 
