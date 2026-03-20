@@ -1,7 +1,7 @@
 import SwiftUI
 
-struct OnboardingStep3View: View {
-    @Bindable var vm: OnboardingViewModel
+struct RoommatePreferencesView: View {
+    @Bindable var vm: RoommatePreferencesViewModel
     let role: String
 
     private var isStudent: Bool { role == "student" }
@@ -278,27 +278,5 @@ struct OnboardingStep3View: View {
                 RoundedRectangle(cornerRadius: 20)
                     .stroke(Color(.neutral, 500), lineWidth: 1)
             )
-    }
-}
-
-
-private struct PreferenceSection<Content: View>: View {
-    let icon: String
-    let title: String
-    @ViewBuilder let content: Content
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: AppSpacing.sm) {
-            HStack(spacing: AppSpacing.xs) {
-                Image(systemName: icon)
-                    .font(.body12())
-                    .foregroundStyle(Color(.purple, 500))
-                Text(title)
-                    .font(.body10(.semiBold))
-                    .foregroundStyle(Color(.neutral, 700))
-            }
-
-            content
-        }
     }
 }

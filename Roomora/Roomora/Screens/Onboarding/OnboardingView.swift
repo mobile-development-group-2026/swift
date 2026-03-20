@@ -57,9 +57,9 @@ struct OnboardingView: View {
             // step content
             Group {
                 switch vm.step {
-                case 0: OnboardingStep1View(vm: vm)
-                case 1: OnboardingStep2View(vm: vm)
-                case 2: OnboardingStep3View(vm: vm, role: session.role ?? "student")
+                case 0: BuildYourProfileView(vm: vm.buildProfile)
+                case 1: RoommateSituationView(vm: vm.situation)
+                case 2: RoommatePreferencesView(vm: vm.preferences, role: session.role ?? "student")
                 default: OnboardingStep4View()
                 }
             }
