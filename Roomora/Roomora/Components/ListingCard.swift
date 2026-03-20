@@ -9,7 +9,7 @@ import SwiftUI
 
 struct ListingCard: View {
     let listing: Listing
-
+    
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text(listing.title)
@@ -30,4 +30,5 @@ struct ListingCard: View {
         .cornerRadius(12)
         .padding(.horizontal)
     }
+    
 }

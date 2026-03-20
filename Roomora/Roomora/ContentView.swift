@@ -111,6 +111,8 @@ struct ContentView: View {
         .task {
             if clerk.user != nil && !session.isLoaded {
                 await session.load(clerk: clerk)
+                await NotificationManager.shared.requestPermission()
+                    LocationManager.shared.requestPermissions()
             }
         }
     }

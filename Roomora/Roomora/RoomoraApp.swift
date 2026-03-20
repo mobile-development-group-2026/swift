@@ -1,5 +1,7 @@
 import SwiftUI
 import ClerkKit
+import UserNotifications
+import CoreLocation
 
 @main
 struct RoomoraApp: App {

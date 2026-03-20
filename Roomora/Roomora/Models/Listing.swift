@@ -8,7 +8,7 @@
 import Foundation
 
 struct Listing: Identifiable, Codable, Hashable {
-    var id: Int?
+    var id: String?
     var listingType: String = "property"
     var title: String = ""
     var description: String = ""
@@ -17,6 +17,8 @@ struct Listing: Identifiable, Codable, Hashable {
     var city: String = ""
     var state: String = ""
     var zipCode: String = ""
+    var latitude: Double?
+    var longitude: Double?
     var rent: Double = 0
     var securityDeposit: Double = 0
     var utilitiesIncluded: Bool = false
@@ -40,6 +42,8 @@ struct Listing: Identifiable, Codable, Hashable {
         case city
         case state
         case zipCode = "zip_code"
+        case latitude
+        case longitude
         case rent
         case securityDeposit = "security_deposit"
         case utilitiesIncluded = "utilities_included"

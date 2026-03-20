@@ -13,5 +13,10 @@
 		<string>Sora-Bold.ttf</string>
 		<string>Sora-ExtraBold.ttf</string>
 	</array>
+    <key>NSLocationWhenInUseUsageDescription</key>
+    <string>Roomora necesita tu ubicación para avisarte cuando estés cerca de una vivienda favorita.</string>
+
+    <key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+    <string>Roomora necesita acceso continuo a tu ubicación para notificarte cuando pases cerca de una vivienda guardada.</string>
 </dict>
 </plist>
