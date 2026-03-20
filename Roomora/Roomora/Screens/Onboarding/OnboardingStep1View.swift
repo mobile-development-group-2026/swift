@@ -80,54 +80,30 @@ struct OnboardingStep1View: View {
                 }
 
                 // university
-                VStack(alignment: .leading, spacing: AppSpacing.xs) {
-                    Text("UNIVERSITY")
-                        .font(.body10(.semiBold))
-                        .foregroundStyle(Color(.neutral, 700))
-
-                    TextField("e.g. Tec de Monterrey", text: $vm.university)
-                        .font(.body14())
-                        .foregroundStyle(Color(.neutral, 900))
-                        .padding(AppSpacing.md)
-                        .background(
-                            RoundedRectangle(cornerRadius: 12)
-                                .stroke(Color(.neutral, 300), lineWidth: 1)
-                        )
-                }
+                AppTextField(
+                    icon: "building.columns",
+                    label: "UNIVERSITY",
+                    placeholder: "e.g. Tec de Monterrey",
+                    text: $vm.university
+                )
 
                 // birth year & graduation year
                 HStack(spacing: AppSpacing.md) {
-                    VStack(alignment: .leading, spacing: AppSpacing.xs) {
-                        Text("BIRTH YEAR")
-                            .font(.body10(.semiBold))
-                            .foregroundStyle(Color(.neutral, 700))
+                    AppTextField(
+                        icon: "calendar",
+                        label: "BIRTH YEAR",
+                        placeholder: "e.g. 2003",
+                        text: $vm.birthYear,
+                        keyboardType: .numberPad
+                    )
 
-                        TextField("e.g. 2003", text: $vm.birthYear)
-                            .font(.body14())
-                            .foregroundStyle(Color(.neutral, 900))
-                            .keyboardType(.numberPad)
-                            .padding(AppSpacing.md)
-                            .background(
-                                RoundedRectangle(cornerRadius: 12)
-                                    .stroke(Color(.neutral, 300), lineWidth: 1)
-                            )
-                    }
-
-                    VStack(alignment: .leading, spacing: AppSpacing.xs) {
-                        Text("GRADUATION YEAR")
-                            .font(.body10(.semiBold))
-                            .foregroundStyle(Color(.neutral, 700))
-
-                        TextField("e.g. 2027", text: $vm.graduationYear)
-                            .font(.body14())
-                            .foregroundStyle(Color(.neutral, 900))
-                            .keyboardType(.numberPad)
-                            .padding(AppSpacing.md)
-                            .background(
-                                RoundedRectangle(cornerRadius: 12)
-                                    .stroke(Color(.neutral, 300), lineWidth: 1)
-                            )
-                    }
+                    AppTextField(
+                        icon: "graduationcap",
+                        label: "GRADUATION YEAR",
+                        placeholder: "e.g. 2027",
+                        text: $vm.graduationYear,
+                        keyboardType: .numberPad
+                    )
                 }
 
                 // bio

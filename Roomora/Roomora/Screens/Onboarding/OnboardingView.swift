@@ -58,7 +58,7 @@ struct OnboardingView: View {
             Group {
                 switch vm.step {
                 case 0: OnboardingStep1View(vm: vm)
-                case 1: OnboardingStep2View()
+                case 1: OnboardingStep2View(vm: vm)
                 case 2: OnboardingStep3View()
                 default: OnboardingStep4View()
                 }

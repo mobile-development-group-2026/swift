@@ -9,6 +9,9 @@ class OnboardingViewModel {
     var isLoading = false
     var errorMessage: String?
 
+    // Step 2 — Situation
+    var situation: HousingSituation?
+
     // Step 1 — Profile
     var bio = ""
     var university = ""
@@ -50,9 +53,14 @@ class OnboardingViewModel {
     var canContinue: Bool {
         switch step {
         case 0:
-            return !bio.trimmingCharacters(in: .whitespaces).isEmpty
-                && !university.trimmingCharacters(in: .whitespaces).isEmpty
-                && selectedHobbies.count > 0
+            /*
+             !bio.trimmingCharacters(in: .whitespaces).isEmpty
+                 && !university.trimmingCharacters(in: .whitespaces).isEmpty
+                 && selectedHobbies.count > 0
+             */
+            return selectedHobbies.count > 0
+        case 1:
+            return situation != nil
         default: return true
         }
     }
