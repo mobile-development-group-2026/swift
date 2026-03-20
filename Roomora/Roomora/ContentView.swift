@@ -67,6 +67,12 @@ struct ContentView: View {
                                         .environment(Clerk.shared)
                                 case .designSystem:
                                     DesignSystemTestView()
+                                case .createListing:
+                                    CreateListingView()
+                                case .listingPreview(let listing):
+                                    ListingPreviewView(listing: listing)
+                                case .landlordProfile:
+                                    LandlordProfileView()
                                 }
                             }
                     }
@@ -86,6 +92,12 @@ struct ContentView: View {
                                     .environment(Clerk.shared)
                             case .designSystem:
                                 DesignSystemTestView()
+                            case .createListing:
+                                CreateListingView()
+                            case .listingPreview(let listing):
+                                ListingPreviewView(listing: listing)
+                            case .landlordProfile:
+                                LandlordProfileView()
                             }
                         }
                 }

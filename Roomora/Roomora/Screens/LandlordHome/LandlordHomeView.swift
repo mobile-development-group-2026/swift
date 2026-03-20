@@ -2,6 +2,7 @@ import SwiftUI
 import ClerkKit
 
 struct LandlordHomeView: View {
+    @Environment(AppRouter.self) private var router
     @Environment(Clerk.self) private var clerk
     @Environment(UserSession.self) private var session
 
@@ -153,7 +154,9 @@ struct LandlordHomeView: View {
     private var myListings: some View {
         VStack(alignment: .leading, spacing: AppSpacing.md) {
             // add listing button
-            Button {} label: {
+            Button {
+                router.navigate(to: .createListing)
+            } label: {
                 HStack(spacing: AppSpacing.xs) {
                     Image(systemName: "plus.circle.fill")
                         .font(.system(size: 18))
@@ -373,6 +376,9 @@ struct LandlordHomeView: View {
             ForEach(LandlordNavTab.allCases, id: \.self) { tab in
                 Button {
                     activeNavTab = tab
+                    if tab == .profile {
+                        router.navigate(to: .landlordProfile)
+                    }
                 } label: {
                     VStack(spacing: AppSpacing.xxs) {
                         Image(systemName: activeNavTab == tab ? tab.icon + ".fill" : tab.icon)
