@@ -4,34 +4,54 @@ import ClerkKitUI
 
 struct ContentView: View {
     @Environment(Clerk.self) private var clerk
+    @Environment(UserSession.self) private var session
     @State private var router = AppRouter()
 
     var body: some View {
         Group {
             if clerk.user != nil {
-                NavigationStack(path: $router.path) {
-                    HomeView()
-                        .navigationDestination(for: AppRoute.self) { route in
-                            switch route {
-                            case .propertyList:
-                                PropertyListView()
-                            case .home:
-                                HomeView()
-                            case .signUp:
-                                SignUpView()
-                                    .environment(Clerk.shared)
-                            case .designSystem:
-                                DesignSystemTestView()
+                if !session.isLoaded {
+                    VStack(spacing: AppSpacing.md) {
+                        ProgressView()
+                            .tint(Color(.purple, 500))
+                        Text("Setting up your account...")
+                            .font(.body14())
+                            .foregroundStyle(Color(.neutral, 500))
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .background(.white)
+                } else if !session.isOnboarded {
+                    OnboardingView()
+                        .environment(Clerk.shared)
+                } else {
+                    NavigationStack(path: $router.path) {
+                        HomeView()
+                            .navigationDestination(for: AppRoute.self) { route in
+                                switch route {
+                                case .home:
+                                    HomeView()
+                                case .signUp:
+                                    SignUpView()
+                                        .environment(Clerk.shared)
+                                case .designSystem:
+                                    DesignSystemTestView()
+                                case .propertyList:
+                                    PropertyListView()
+                                case .createListing:
+                                    CreateListingView()
+                                case .listingPreview(let listing):
+                                    ListingPreviewView(listing: listing)
+                                case .landlordProfile:
+                                    LandlordProfileView()
+                                }
                             }
-                        }
+                    }
                 }
             } else {
                 NavigationStack(path: $router.path) {
                     LandingView()
                         .navigationDestination(for: AppRoute.self) { route in
                             switch route {
-                            case .propertyList:
-                                PropertyListView()
                             case .home:
                                 HomeView()
                             case .signUp:
@@ -39,12 +59,19 @@ struct ContentView: View {
                                     .environment(Clerk.shared)
                             case .designSystem:
                                 DesignSystemTestView()
+                            case .propertyList:
+                                PropertyListView()
+                            case .createListing:
+                                CreateListingView()
+                            case .listingPreview(let listing):
+                                ListingPreviewView(listing: listing)
+                            case .landlordProfile:
+                                LandlordProfileView()
                             }
                         }
                 }
             }
         }
-        // available to each child in the Group
         .environment(router)
         .prefetchClerkImages()
         .sheet(item: $router.presentedSheet) { modal in
@@ -55,7 +82,7 @@ struct ContentView: View {
                         .navigationBarHidden(true)
                 }
                 .environment(Clerk.shared)
-                .presentationDetents([.fraction(0.65)])
+                .presentationDetents([.fraction(0.65), .large])
                 .presentationCornerRadius(24)
                 .presentationBackground(.white)
             default:
@@ -72,9 +99,19 @@ struct ContentView: View {
                     .transition(.scale.combined(with: .opacity))
             }
         }
-        .onChange(of: clerk.user != nil) {
+        .onChange(of: clerk.user?.id) { oldId, newId in
             router.popToRoot()
             router.dismissModal()
+            if newId == nil {
+                session.clear()
+            } else if oldId == nil && !session.isLoaded {
+                Task { await session.load(clerk: clerk) }
+            }
+        }
+        .task {
+            if clerk.user != nil && !session.isLoaded {
+                await session.load(clerk: clerk)
+            }
         }
     }
 

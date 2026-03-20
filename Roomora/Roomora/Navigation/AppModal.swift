@@ -6,7 +6,7 @@ enum ModalStyle {
 }
 
 /// Defines every modal the app can present (sheets, popups, full screen covers).
-/// Identifiable is a protocol that has a unique Id property. We need it to use .sheet(item:) and .fullScreenCover(item:)
+/// Identifiablee is a protocol that has a unique Id property. We need it to use .sheet(item:) and .fullScreenCover(item:)
 ///
 /// (App-level) modals
 enum AppModal: Identifiable {

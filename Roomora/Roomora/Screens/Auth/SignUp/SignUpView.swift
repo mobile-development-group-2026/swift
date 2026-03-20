@@ -42,10 +42,16 @@ struct SignUpView: View {
                 VStack(alignment: .leading, spacing: AppSpacing.lg) {
 
                     if vm.isVerifying {
-                        VerifyEmailView(email: vm.email)
-                            .environment(clerk)
+                        VerifyEmailView(
+                            email: vm.email,
+                            role: vm.role,
+                            firstName: vm.firstName,
+                            lastName: vm.lastName,
+                            phone: vm.phone
+                        )
+                        .environment(clerk)
                     } else {
-                        // Header
+                        // header
                         VStack(alignment: .leading, spacing: AppSpacing.xs) {
                             Text("Create your")
                                 .font(.h1())
@@ -63,7 +69,7 @@ struct SignUpView: View {
 
                         RolePicker(role: $vm.role)
 
-                        // Name fields
+                        // name
                         HStack(spacing: AppSpacing.sm) {
                             AppTextField(
                                 icon: "person",
@@ -80,22 +86,16 @@ struct SignUpView: View {
                             )
                         }
 
-                        // Email field
+                        // email
                         AppTextField(
                             icon: "envelope",
                             label: "EMAIL ADDRESS",
                             placeholder: vm.role == .student ? "you@university.edu" : "lena@email.com",
                             text: $vm.email,
                             keyboardType: .emailAddress
-                        ) {
-                            if vm.role == .landlord {
-                                Text("Required")
-                                    .font(.body10())
-                                    .foregroundStyle(Color(.neutral, 500))
-                            }
-                        }
+                        )
 
-                        // Phone number (landlord only)
+                        // phone number (landlord only)
                         if vm.role == .landlord {
                             AppTextField(
                                 icon: "phone",
@@ -103,14 +103,10 @@ struct SignUpView: View {
                                 placeholder: "+1 (555) 000-0000",
                                 text: $vm.phone,
                                 keyboardType: .phonePad
-                            ) {
-                                Text("Required")
-                                    .font(.body10())
-                                    .foregroundStyle(Color(.neutral, 500))
-                            }
+                            )
                             .transition(.move(edge: .top).combined(with: .opacity))
 
-                            // Identity verification info
+                            // id verification info
                             HStack(alignment: .top, spacing: AppSpacing.sm) {
                                 Image(systemName: "checkmark.shield")
                                     .foregroundStyle(Color(.purple, 500))
@@ -128,7 +124,7 @@ struct SignUpView: View {
                             .transition(.move(edge: .top).combined(with: .opacity))
                         }
 
-                        // Password field
+                        // password
                         VStack(alignment: .leading, spacing: AppSpacing.xs) {
                             AppTextField(
                                 icon: "lock",
@@ -141,7 +137,7 @@ struct SignUpView: View {
                             PasswordStrengthBar(password: vm.password)
                         }
 
-                        // Terms checkbox
+                        // terms checkbox
                         Button {
                             vm.agreedToTerms.toggle()
                         } label: {
@@ -163,7 +159,7 @@ struct SignUpView: View {
 
                         Spacer(minLength: AppSpacing.xl)
 
-                        // Create Account button
+                        // create Account button
                         AppButton(
                             title: vm.buttonTitle,
                             variant: .primary

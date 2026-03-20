@@ -1,33 +1,14 @@
 import SwiftUI
 
-struct AppTextField<Trailing: View>: View {
+struct AppTextField: View {
     let icon: String
     let label: String
     let placeholder: String
     @Binding var text: String
     var isSecure: Bool = false
     var keyboardType: UIKeyboardType = .default
-    @ViewBuilder var trailing: () -> Trailing
 
     @State private var showPassword = false
-
-    init(
-        icon: String,
-        label: String,
-        placeholder: String,
-        text: Binding<String>,
-        isSecure: Bool = false,
-        keyboardType: UIKeyboardType = .default,
-        @ViewBuilder trailing: @escaping () -> Trailing = { EmptyView() }
-    ) {
-        self.icon = icon
-        self.label = label
-        self.placeholder = placeholder
-        self._text = text
-        self.isSecure = isSecure
-        self.keyboardType = keyboardType
-        self.trailing = trailing
-    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: AppSpacing.xs) {
@@ -62,8 +43,6 @@ struct AppTextField<Trailing: View>: View {
                             .font(.body16())
                     }
                 }
-
-                trailing()
             }
             .padding(AppSpacing.md)
             .background(
