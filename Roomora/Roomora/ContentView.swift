@@ -13,6 +13,8 @@ struct ContentView: View {
                     HomeView()
                         .navigationDestination(for: AppRoute.self) { route in
                             switch route {
+                            case .propertyList:
+                                PropertyListView()
                             case .home:
                                 HomeView()
                             case .signUp:
@@ -28,6 +30,8 @@ struct ContentView: View {
                     LandingView()
                         .navigationDestination(for: AppRoute.self) { route in
                             switch route {
+                            case .propertyList:
+                                PropertyListView()
                             case .home:
                                 HomeView()
                             case .signUp:
