@@ -57,6 +57,22 @@ class ListingService {
         let decoded = try JSONDecoder().decode(ListingResponse.self, from: data)
         return decoded.data
     }
+    func syncUser(token: String) async throws {
+        guard let url = URL(string: "\(baseURL)/auth/sync") else {
+            throw URLError(.badURL)
+        }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+
+        let (_, response) = try await URLSession.shared.data(for: request)
+        guard let httpResponse = response as? HTTPURLResponse,
+              httpResponse.statusCode == 200 || httpResponse.statusCode == 201 else {
+            throw URLError(.badServerResponse)
+        }
+    }
 }
 
 // MARK: - Response Models

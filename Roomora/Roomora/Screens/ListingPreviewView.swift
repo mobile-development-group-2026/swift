@@ -6,10 +6,36 @@
 //
 
 import SwiftUI
+import ClerkKit
 
 struct ListingPreviewView: View {
     let listing: Listing
     @State private var isPublished = false
+    @State private var isLoading = false
+    @State private var errorMessage: String?
+    
+    
+
+    private func publishListing() async {
+        print("=== PUBLISH TAPPED ===")
+        isLoading = true
+        
+        isLoading = true
+        do {
+            let token = try await Clerk.shared.session?.getToken() ?? ""
+            if token.isEmpty {
+                errorMessage = "No auth token found — are you logged in?"
+                isLoading = false
+                return
+            }
+            try await ListingService.shared.syncUser(token: token)
+            let _ = try await ListingService.shared.createListing(listing, token: token)
+            isPublished = true
+        } catch {
+            errorMessage = "Failed to publish: \(error.localizedDescription)"
+        }
+        isLoading = false
+    }
 
     var body: some View {
         ScrollView {
@@ -79,7 +105,9 @@ struct ListingPreviewView: View {
                 Divider()
 
                 AppButton(title: isPublished ? "✓ Published" : "Publish Listing") {
-                    isPublished = true
+                    Task {
+                        await publishListing()
+                    }
                 }
                 .padding()
                 .opacity(isPublished ? 0.6 : 1)
@@ -88,6 +116,11 @@ struct ListingPreviewView: View {
         }
         .navigationTitle("Preview")
         .navigationBarTitleDisplayMode(.inline)
+        .alert("Error", isPresented: .constant(errorMessage != nil)) {
+            Button("OK") { errorMessage = nil }
+        } message: {
+            Text(errorMessage ?? "")
+        }
     }
 }
 
