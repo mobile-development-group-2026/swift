@@ -5,13 +5,7 @@ struct BuildYourProfileView: View {
     @Bindable var vm: BuildYourProfileViewModel
 
     private var bioHint: AttributedString {
-        var str = AttributedString("Add at least ")
-        var bold = AttributedString("5 characters")
-        bold.font = .body14(.bold)
-        var end = AttributedString(" to continue.")
-        str += bold
-        str += end
-        return str
+        try! AttributedString(markdown: "Add at least **5 characters** to continue.")
     }
 
     var body: some View {

@@ -3,7 +3,6 @@ import ClerkKit
 
 struct SignInView: View {
     @Environment(Clerk.self) private var clerk
-    @Environment(UserSession.self) private var session
     @Environment(\.dismiss) private var dismiss
 
     @State private var vm = SignInViewModel()
@@ -95,7 +94,7 @@ struct SignInView: View {
                         variant: .primary
                     ) {
                         Task {
-                            if await vm.signIn(clerk: clerk, session: session) {
+                            if await vm.signIn(clerk: clerk) {
                                 dismiss()
                             }
                         }

@@ -13,7 +13,7 @@ class SignInViewModel {
     }
 
     /// Returns `true` if sign-in completed and the view should dismiss.
-    func signIn(clerk: Clerk, session: UserSession) async -> Bool {
+    func signIn(clerk: Clerk) async -> Bool {
         isLoading = true
         errorMessage = nil
         do {
@@ -27,25 +27,10 @@ class SignInViewModel {
                 return false
             }
 
-            // Sync with backend — finds existing user by clerk_id
-            if let user = clerk.user {
-                let profile = try await APIClient.shared.syncUser(
-                    clerk: clerk,
-                    role: "",
-                    firstName: user.firstName ?? "",
-                    lastName: user.lastName ?? "",
-                    email: email,
-                    phone: nil
-                )
-                session.profile = profile
-                session.isLoaded = true
-            }
-
             isLoading = false
             return true
         } catch {
             print("signIn failed: \(error)")
-            session.isLoaded = true // don't hang the spinner
             errorMessage = error.localizedDescription
             isLoading = false
             return false

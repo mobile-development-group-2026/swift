@@ -4,9 +4,11 @@ import ClerkKit
 @Observable
 class OnboardingViewModel {
     var step = 0
-    let totalSteps = 4
+    let totalSteps = 3
     var isLoading = false
     var errorMessage: String?
+    var showCelebration = false
+    private var completedProfile: SyncResponse?
 
     // child view models
     var buildProfile = BuildYourProfileViewModel()
@@ -35,7 +37,7 @@ class OnboardingViewModel {
         }
     }
 
-    func complete(clerk: Clerk, session: UserSession) async {
+    func complete(clerk: Clerk) async {
         isLoading = true
         errorMessage = nil
         do {
@@ -43,10 +45,15 @@ class OnboardingViewModel {
                 clerk: clerk,
                 fields: ["onboarded": true]
             )
-            session.profile = profile
+            completedProfile = profile
+            showCelebration = true
         } catch {
             errorMessage = error.localizedDescription
         }
         isLoading = false
+    }
+
+    func finishOnboarding(session: UserSession) {
+        session.profile = completedProfile
     }
 }

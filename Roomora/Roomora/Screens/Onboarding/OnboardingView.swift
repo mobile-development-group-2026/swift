@@ -8,6 +8,14 @@ struct OnboardingView: View {
     @State private var vm = OnboardingViewModel()
 
     var body: some View {
+        if vm.showCelebration {
+            OnboardingCompleteView(
+                firstName: session.firstName ?? "there",
+                role: session.role ?? "student"
+            ) {
+                vm.finishOnboarding(session: session)
+            }
+        } else {
         VStack(spacing: 0) {
             // top bar
             HStack {
@@ -59,8 +67,7 @@ struct OnboardingView: View {
                 switch vm.step {
                 case 0: BuildYourProfileView(vm: vm.buildProfile)
                 case 1: RoommateSituationView(vm: vm.situation)
-                case 2: RoommatePreferencesView(vm: vm.preferences, role: session.role ?? "student")
-                default: OnboardingStep4View()
+                default: RoommatePreferencesView(vm: vm.preferences, role: session.role ?? "student")
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -81,7 +88,7 @@ struct OnboardingView: View {
                 variant: .primary
             ) {
                 if vm.isLastStep {
-                    Task { await vm.complete(clerk: clerk, session: session) }
+                    Task { await vm.complete(clerk: clerk) }
                 } else {
                     vm.nextStep()
                 }
@@ -92,6 +99,7 @@ struct OnboardingView: View {
             .padding(.vertical, AppSpacing.lg)
         }
         .background(.white)
+        }
     }
 }
 
