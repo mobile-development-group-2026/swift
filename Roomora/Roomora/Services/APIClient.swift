@@ -26,9 +26,6 @@ class APIClient {
     }
 
     func decodeData<T: Decodable>(_ type: T.Type, from data: Data) throws -> T {
-        if let jsonString = String(data: data, encoding: .utf8) {
-            print("📦 [APIClient] Raw JSON for \(T.self): \(jsonString)")
-        }
         let json = try JSONSerialization.jsonObject(with: data) as? [String: Any]
         guard let inner = json?["data"] else {
             throw APIError.invalidResponse
