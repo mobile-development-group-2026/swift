@@ -21,28 +21,81 @@ struct PropertyListView: View {
     }
 
     var body: some View {
-        NavigationStack {
-            ScrollView {
-                VStack(alignment: .leading, spacing: 16) {
+        VStack(spacing: 0) {
 
-                    // Active filters summary
+            // Top Toggle
+            HStack(spacing: 0) {
+                Button {
+                    // roommate tab
+                } label: {
+                    HStack {
+                        Image(systemName: "person")
+                        Text("Roommate")
+                    }
+                    .font(.body14(.semiBold))
+                    .foregroundColor(Color(.neutral, 500))
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 10)
+                    .background(Color(.neutral, 100))
+                    .cornerRadius(20)
+                }
+
+                Button {
+                    // housing tab - active
+                } label: {
+                    HStack {
+                        Image(systemName: "house")
+                        Text("Housing")
+                    }
+                    .font(.body14(.semiBold))
+                    .foregroundColor(.white)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 10)
+                    .background(Color(.purple, 500))
+                    .cornerRadius(20)
+                }
+            }
+            .padding(.horizontal)
+            .padding(.top, 8)
+
+            ScrollView {
+                VStack(alignment: .leading, spacing: 20) {
+
+                    // Header row
+                    HStack {
+                        Text("LISTINGS NEAR CAMPUS")
+                            .font(.body12(.semiBold))
+                            .foregroundColor(Color(.purple, 500))
+                        Spacer()
+                        HStack(spacing: 4) {
+                            Image(systemName: "house")
+                                .font(.body12())
+                            Text("\(listings.count) available")
+                                .font(.body12(.semiBold))
+                        }
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 6)
+                        .background(Color(.neutral, 100))
+                        .cornerRadius(20)
+                    }
+                    .padding(.horizontal)
+
+                    // Active filters
                     if !filters.isEmpty {
                         ActiveFiltersView(filters: filters) {
                             filters = SearchFilters()
                         }
                     }
 
-                    // Low match CTA
+                    // Relaxation suggestions
                     if showRelaxationSuggestions {
                         RelaxationSuggestionsView(
                             suggestions: filters.relaxationSuggestions(),
-                            onApply: { action in
-                                applyRelaxation(action)
-                            }
+                            onApply: applyRelaxation
                         )
                     }
 
-                    // Listings
+                    // Featured card
                     if isLoading {
                         ProgressView()
                             .frame(maxWidth: .infinity)
@@ -50,34 +103,57 @@ struct PropertyListView: View {
                     } else if listings.isEmpty {
                         EmptyStateView()
                     } else {
-                        ForEach(listings) { listing in
-                            PropertyCard(listing: listing)
+                        // First listing as featured
+                        if let featured = listings.first {
+                            FeaturedListingCard(listing: featured)
+                                .padding(.horizontal)
+                        }
+
+                        // More near you
+                        if listings.count > 1 {
+                            HStack {
+                                Text("More near you")
+                                    .font(.h4(.semiBold))
+                                Spacer()
+                                Button("See all") {}
+                                    .font(.body14(.semiBold))
+                                    .foregroundColor(Color(.purple, 500))
+                            }
+                            .padding(.horizontal)
+
+                            ForEach(listings.dropFirst()) { listing in
+                                CompactListingCard(listing: listing)
+                                    .padding(.horizontal)
+                            }
                         }
                     }
                 }
                 .padding(.vertical)
             }
-            .navigationTitle("Find a Place")
-            .navigationBarTitleDisplayMode(.large)
-            .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button {
-                        showFilters = true
-                    } label: {
-                        Image(systemName: "slider.horizontal.3")
-                            .foregroundColor(Color(.purple, 500))
-                    }
+        }
+        .navigationTitle("")
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                Button {
+                    showFilters = true
+                } label: {
+                    Image(systemName: "slider.horizontal.3")
+                        .foregroundColor(Color(.neutral, 700))
+                        .padding(8)
+                        .background(Color(.neutral, 100))
+                        .cornerRadius(8)
                 }
             }
-            .sheet(isPresented: $showFilters) {
-                FilterView(filters: $filters)
-            }
-            .task {
-                await loadListings()
-            }
-            .onChange(of: filters) {
-                Task { await loadListings() }
-            }
+        }
+        .sheet(isPresented: $showFilters) {
+            FilterView(filters: $filters)
+        }
+        .task {
+            await loadListings()
+        }
+        .onChange(of: filters) {
+            Task { await loadListings() }
         }
     }
 
@@ -107,8 +183,115 @@ struct PropertyListView: View {
     }
 }
 
-// MARK: - Subviews
+// MARK: - Featured Card
+struct FeaturedListingCard: View {
+    let listing: Listing
 
+    var body: some View {
+        VStack(alignment: .leading, spacing: 0) {
+
+            // Photo placeholder
+            ZStack(alignment: .topLeading) {
+                Rectangle()
+                    .fill(Color(.neutral, 200))
+                    .frame(height: 200)
+                    .cornerRadius(16)
+
+                PillBadge(label: "Verified landlord")
+                    .padding(12)
+
+                Text("$\(String(format: "%.0f", listing.rent))")
+                    .font(.h2(.bold))
+                    .foregroundColor(.white)
+                    .padding(12)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
+            }
+
+            VStack(alignment: .leading, spacing: 8) {
+                HStack {
+                    Text(listing.title)
+                        .font(.h4(.semiBold))
+                    Spacer()
+                    Image(systemName: "heart")
+                        .foregroundColor(Color(.neutral, 400))
+                }
+
+                Text("\(listing.city), \(listing.state) · \(listing.propertyType)")
+                    .font(.body14())
+                    .foregroundColor(Color(.neutral, 500))
+
+                // Compatibility bar
+                VStack(alignment: .leading, spacing: 4) {
+                    HStack {
+                        Text("Compatibility")
+                            .font(.body14(.semiBold))
+                            .foregroundColor(Color(.purple, 500))
+                        Spacer()
+                        Text("87%")
+                            .font(.body14(.semiBold))
+                            .foregroundColor(Color(.purple, 500))
+                    }
+                    ProgressView(value: 0.87)
+                        .tint(Color(.purple, 500))
+                }
+
+                HStack(spacing: 8) {
+                    AppButton(title: "Schedule visit", variant: .secondary) {}
+                    AppButton(title: "Apply now →") {}
+                }
+            }
+            .padding()
+            .background(.white)
+            .cornerRadius(16)
+            .shadow(color: .black.opacity(0.06), radius: 8, y: 4)
+        }
+    }
+}
+
+// MARK: - Compact Card
+struct CompactListingCard: View {
+    let listing: Listing
+
+    var body: some View {
+        HStack(spacing: 12) {
+            Rectangle()
+                .fill(Color(.neutral, 200))
+                .frame(width: 80, height: 80)
+                .cornerRadius(12)
+
+            VStack(alignment: .leading, spacing: 4) {
+                HStack {
+                    Text("$\(String(format: "%.0f", listing.rent))/mo")
+                        .font(.body14(.semiBold))
+                    Spacer()
+                    Image(systemName: "heart")
+                        .foregroundColor(Color(.neutral, 400))
+                }
+
+                Text(listing.title)
+                    .font(.body14())
+                    .foregroundColor(Color(.neutral, 700))
+
+                Text("\(listing.city) · \(listing.propertyType)")
+                    .font(.body12())
+                    .foregroundColor(Color(.neutral, 400))
+
+                HStack(spacing: 4) {
+                    PillBadge(label: "\(listing.leaseTermMonths) months")
+                    if listing.petsAllowed {
+                        PillBadge(label: "Pets ok")
+                    }
+                }
+            }
+        }
+        .padding()
+        .background(.white)
+        .cornerRadius(12)
+        .shadow(color: .black.opacity(0.05), radius: 6, y: 3)
+    }
+    
+}
+// MARK: - Active Filters
 struct ActiveFiltersView: View {
     let filters: SearchFilters
     let onClear: () -> Void
@@ -131,6 +314,7 @@ struct ActiveFiltersView: View {
     }
 }
 
+// MARK: - Relaxation Suggestions
 struct RelaxationSuggestionsView: View {
     let suggestions: [RelaxationSuggestion]
     let onApply: (RelaxationAction) -> Void
@@ -143,7 +327,6 @@ struct RelaxationSuggestionsView: View {
                 Text("Not many results — try adjusting:")
                     .font(.body14(.semiBold))
             }
-
             ForEach(suggestions) { suggestion in
                 Button {
                     onApply(suggestion.action)
@@ -174,6 +357,7 @@ struct RelaxationSuggestionsView: View {
     }
 }
 
+// MARK: - Empty State
 struct EmptyStateView: View {
     var body: some View {
         VStack(spacing: 16) {
@@ -188,30 +372,5 @@ struct EmptyStateView: View {
         }
         .frame(maxWidth: .infinity)
         .padding(.top, 60)
-    }
-}
-
-struct PropertyCard: View {
-    let listing: Listing
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text(listing.title)
-                .font(.h4())
-            Text(listing.address + ", " + listing.city)
-                .font(.body14())
-                .foregroundColor(Color(.neutral, 400))
-            HStack {
-                PillBadge(label: "$\(String(format: "%.0f", listing.rent))/mo")
-                PillBadge(label: "\(listing.bedrooms) bed")
-                if listing.petsAllowed {
-                    PillBadge(label: "🐾 Pets ok")
-                }
-            }
-        }
-        .padding()
-        .background(Color(.neutral, 100))
-        .cornerRadius(12)
-        .padding(.horizontal)
     }
 }
