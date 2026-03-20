@@ -71,14 +71,14 @@ struct LandingView: View {
                 }
                 .multilineTextAlignment(.center)
 
-                // Subtitle
+                // subtitle
                 Text("Verified listings, compatible roommates,\nand zero stress.")
                     .font(.body14())
                     .foregroundStyle(Color(.neutral, 500))
                     .multilineTextAlignment(.center)
                     .fixedSize(horizontal: true, vertical: true)
 
-                // Pills
+                // pills
                 VStack(spacing: AppSpacing.sm) {
                     HStack(spacing: AppSpacing.sm) {
                         PillBadge(label: "Verified landlords", dotColor: Color(.green, 500))
@@ -89,7 +89,7 @@ struct LandingView: View {
 
                 Spacer()
 
-                // Buttons
+                // buttons
                 VStack(spacing: AppSpacing.sm) {
                     AppButton(title: "Get Started — It's Free", variant: .primary) {
                         router.navigate(to: .signUp)
