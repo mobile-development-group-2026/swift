@@ -91,7 +91,8 @@ struct ContentView: View {
                 session.clear()
             }
         }
-        .task(id: clerk.user?.id) {
+        .task {
+            // only for app relaunch with existing session
             if clerk.user != nil && !session.isLoaded {
                 await session.load(clerk: clerk)
             }

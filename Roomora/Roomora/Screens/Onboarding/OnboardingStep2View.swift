@@ -104,7 +104,7 @@ struct OnboardingStep2View: View {
                                         .fixedSize(horizontal: false, vertical: true)
                                     Text(option.subtitle)
                                         .font(.body12())
-                                        .foregroundStyle(Color(.neutral, 500))
+                                        .foregroundStyle(Color(.neutral, 600))
                                         .fixedSize(horizontal: false, vertical: true)
                                 }
                             }
@@ -122,7 +122,7 @@ struct OnboardingStep2View: View {
                         )
                         .overlay(
                             RoundedRectangle(cornerRadius: 16)
-                                .stroke(selected ? Color(.purple, 400) : Color(.neutral, 300), lineWidth: selected ? 2 : 1)
+                                .stroke(selected ? Color(.purple, 400) : Color(.neutral, 500), lineWidth: selected ? 2 : 1)
                         )
                     }
                     .buttonStyle(.plain)

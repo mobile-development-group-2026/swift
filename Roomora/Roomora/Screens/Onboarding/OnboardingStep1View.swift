@@ -4,6 +4,16 @@ import PhotosUI
 struct OnboardingStep1View: View {
     @Bindable var vm: OnboardingViewModel
 
+    private var bioHint: AttributedString {
+        var str = AttributedString("Add at least ")
+        var bold = AttributedString("5 characters")
+        bold.font = .body14(.bold)
+        var end = AttributedString(" to continue.")
+        str += bold
+        str += end
+        return str
+    }
+
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: AppSpacing.lg) {
@@ -107,31 +117,16 @@ struct OnboardingStep1View: View {
                 }
 
                 // bio
-                VStack(alignment: .leading, spacing: AppSpacing.xs) {
-                    Text("BIO")
-                        .font(.body10(.semiBold))
-                        .foregroundStyle(Color(.neutral, 700))
+                AppTextField(
+                    icon: "",
+                    label: "BIO",
+                    placeholder: "Tell us about yourself, your interests, what you're studying...",
+                    text: $vm.bio,
+                    isMultiline: true
+                )
 
-                    TextEditor(text: $vm.bio)
-                        .font(.body14())
-                        .foregroundStyle(Color(.neutral, 900))
-                        .frame(minHeight: 120)
-                        .scrollContentBackground(.hidden)
-                        .padding(AppSpacing.md)
-                        .background(
-                            RoundedRectangle(cornerRadius: 12)
-                                .stroke(Color(.neutral, 300), lineWidth: 1)
-                        )
-                        .overlay(alignment: .topLeading) {
-                            if vm.bio.isEmpty {
-                                Text("Tell us about yourself, your interests, what you're studying...")
-                                    .font(.body14())
-                                    .foregroundStyle(Color(.neutral, 500))
-                                    .padding(AppSpacing.md)
-                                    .padding(.top, 8)
-                                    .allowsHitTesting(false)
-                            }
-                        }
+                if vm.bio.count < 5 && !vm.bio.isEmpty {
+                    HintBanner(message: bioHint)
                 }
 
                 // hobbies
@@ -164,7 +159,7 @@ struct OnboardingStep1View: View {
                                     )
                                     .overlay(
                                         RoundedRectangle(cornerRadius: 20)
-                                            .stroke(selected ? Color(.purple, 300) : Color(.neutral, 300), lineWidth: 1)
+                                            .stroke(selected ? Color(.purple, 500) : Color(.neutral, 500), lineWidth: 1)
                                     )
                             }
                         }
