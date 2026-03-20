@@ -13,6 +13,7 @@ struct OnboardingCompleteView: View {
         isStudent ? "student" : "landlord"
     }
 
+    // celebration page haha
     private var perks: [(icon: String, iconBg: Color, iconFg: Color, title: String, subtitle: String)] {
         if isStudent {
             return [

@@ -94,7 +94,14 @@ struct ContentView: View {
         // available to each child in the Group
         .environment(router)
         .prefetchClerkImages()
-        .sheet(item: $router.presentedSheet) { modal in
+        .sheet(item: $router.presentedSheet, onDismiss: {
+            // after sign-in sheet closes, load profile if needed
+            if clerk.user != nil && !session.isLoaded {
+                Task {
+                    await session.load(clerk: clerk)
+                }
+            }
+        }) { modal in
             switch modal {
             case .signIn:
                 NavigationStack {
@@ -120,11 +127,15 @@ struct ContentView: View {
             }
         }
         .onChange(of: clerk.user?.id) { oldId, newId in
+            print("[ContentView] clerk.user changed: \(oldId ?? "nil") → \(newId ?? "nil")")
             if newId == nil {
                 router.popToRoot()
                 router.dismissModal()
                 session.clear()
                 loadTimedOut = false
+            } else if oldId == nil && newId != nil {
+                print("[ContentView] sign-in detected, dismissing sheet")
+                router.dismissModal()
             }
         }
         .task(id: clerk.user?.id) {

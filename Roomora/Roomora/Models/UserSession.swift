@@ -21,24 +21,35 @@ class UserSession {
 
     /// Load profile from backend. If there's a pending sync (sign-up that didn't finish),
     /// create the user first via POST /auth/sync. Otherwise just GET /profile.
+    /// Retries up to 3 times with increasing delays to handle token race / cold starts.
     func load(clerk: Clerk) async {
         if isLoaded { return }
-        do {
-            if let sync = pendingSync {
-                profile = try await APIClient.shared.syncUser(
-                    clerk: clerk,
-                    role: sync.role,
-                    firstName: sync.firstName,
-                    lastName: sync.lastName,
-                    email: sync.email,
-                    phone: sync.phone
-                )
-                pendingSync = nil
-            } else {
-                profile = try await APIClient.shared.fetchProfile(clerk: clerk)
+
+        for attempt in 1...3 {
+            // give Clerk time to establish the session token
+            try? await Task.sleep(for: .seconds(attempt == 1 ? 1 : 2))
+
+            do {
+                if let sync = pendingSync {
+                    profile = try await APIClient.shared.syncUser(
+                        clerk: clerk,
+                        role: sync.role,
+                        firstName: sync.firstName,
+                        lastName: sync.lastName,
+                        email: sync.email,
+                        phone: sync.phone
+                    )
+                    pendingSync = nil
+                } else {
+                    profile = try await APIClient.shared.fetchProfile(clerk: clerk)
+                }
+                break // success
+            } catch {
+                print("load attempt \(attempt) failed: \(error)")
+                if attempt == 3 {
+                    print("all attempts exhausted")
+                }
             }
-        } catch {
-            print("load failed: \(error)")
         }
         isLoaded = true
     }

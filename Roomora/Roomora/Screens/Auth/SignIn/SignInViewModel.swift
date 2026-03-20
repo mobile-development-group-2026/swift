@@ -12,8 +12,10 @@ class SignInViewModel {
         isLoading ? "Signing in..." : "Sign In  →"
     }
 
-    /// Returns `true` if sign-in completed and the view should dismiss.
-    func signIn(clerk: Clerk) async -> Bool {
+    /// Attempts sign-in. On success, Clerk sets clerk.user which
+    /// triggers ContentView to dismiss the sheet and load the profile.
+    /// Returns `true` if sign-in succeeded and the sheet should dismiss.
+    func signIn(clerk: Clerk, session: UserSession) async -> Bool {
         isLoading = true
         errorMessage = nil
         do {
@@ -22,10 +24,12 @@ class SignInViewModel {
                 password: password
             )
 
-            guard signIn.status == .complete else {
-                isLoading = false
-                return false
-            }
+            // Wait briefly for Clerk to establish the session
+            try? await Task.sleep(for: .seconds(1))
+
+            // Load profile directly — don't rely on clerk.user observation
+            session.pendingSync = nil
+            await session.load(clerk: clerk)
 
             isLoading = false
             return true

@@ -1,18 +1,10 @@
 import SwiftUI
-import PhotosUI
 
 struct StudentHomeView: View {
     @Environment(UserSession.self) private var session
 
     @State private var selectedTab: HomeTab = .roommate
     @State private var activeNavTab: NavTab = .discover
-    @State private var displayPhoto: Image?
-    @State private var photoPickerItem: PhotosPickerItem?
-
-    private static var photoURL: URL {
-        FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
-            .appendingPathComponent("profile_photo.jpg")
-    }
 
     enum HomeTab: String, CaseIterable {
         case roommate = "Roommate"
@@ -56,23 +48,6 @@ struct StudentHomeView: View {
             bottomNav
         }
         .background(Color(.neutral, 100))
-        .onAppear {
-            if let data = try? Data(contentsOf: Self.photoURL),
-               let uiImage = UIImage(data: data) {
-                displayPhoto = Image(uiImage: uiImage)
-            }
-        }
-        .onChange(of: photoPickerItem) {
-            Task {
-                if let data = try? await photoPickerItem?.loadTransferable(type: Data.self),
-                   let uiImage = UIImage(data: data) {
-                    displayPhoto = Image(uiImage: uiImage)
-                    if let jpeg = uiImage.jpegData(compressionQuality: 0.8) {
-                        try? jpeg.write(to: Self.photoURL)
-                    }
-                }
-            }
-        }
     }
 
     // MARK: - Top Bar
@@ -93,26 +68,7 @@ struct StudentHomeView: View {
 
             Spacer()
 
-            PhotosPicker(selection: $photoPickerItem, matching: .images) {
-                if let photo = displayPhoto {
-                    photo
-                        .resizable()
-                        .scaledToFill()
-                        .frame(width: 40, height: 40)
-                        .clipShape(Circle())
-                        .overlay(Circle().stroke(Color(.purple, 500), lineWidth: 2))
-                } else {
-                    Circle()
-                        .fill(Color(.neutral, 200))
-                        .frame(width: 40, height: 40)
-                        .overlay(
-                            Image(systemName: "person.fill")
-                                .font(.system(size: 16))
-                                .foregroundStyle(Color(.neutral, 400))
-                        )
-                        .overlay(Circle().stroke(Color(.purple, 500), lineWidth: 2))
-                }
-            }
+            ProfileAvatar()
         }
         .padding(.horizontal, AppSpacing.lg)
         .padding(.top, AppSpacing.sm)
