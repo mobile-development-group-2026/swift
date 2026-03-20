@@ -1,6 +1,6 @@
 import Foundation
 
-struct Listing: Identifiable {
+struct MockListing: Identifiable {
     let id = UUID()
     let title: String
     let location: String
@@ -12,14 +12,14 @@ struct Listing: Identifiable {
     let moveIn: String
     let leaseTerm: String
     let amenities: [String]
-    let tags: [ListingTag]
+    let tags: [MockListingTag]
     let compatibility: Int?
     let isVerifiedLandlord: Bool
     let flashSale: String?
     let imageSystemName: String
 }
 
-enum ListingTag {
+enum MockListingTag {
     case new
     case hot
 
@@ -32,7 +32,7 @@ enum ListingTag {
 }
 
 enum MockListings {
-    static let featured = Listing(
+    static let featured = MockListing(
         title: "Bright Studio on University Ave.",
         location: "Gainesville, FL",
         price: 850,
@@ -50,8 +50,8 @@ enum MockListings {
         imageSystemName: "building.2.fill"
     )
 
-    static let nearby: [Listing] = [
-        Listing(
+    static let nearby: [MockListing] = [
+        MockListing(
             title: "Shared room · Tivoli",
             location: "Tivoli Apartments",
             price: 620,
@@ -68,7 +68,7 @@ enum MockListings {
             flashSale: nil,
             imageSystemName: "house.fill"
         ),
-        Listing(
+        MockListing(
             title: "1BR · Frat Row",
             location: "Frat Row",
             price: 1100,
@@ -85,7 +85,7 @@ enum MockListings {
             flashSale: nil,
             imageSystemName: "building.fill"
         ),
-        Listing(
+        MockListing(
             title: "Studio · Downtown",
             location: "Downtown",
             price: 780,

@@ -31,23 +31,38 @@ struct StudentHomeView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            // content
-            ScrollView {
-                VStack(alignment: .leading, spacing: AppSpacing.lg) {
-                    topBar
-                    tabPicker
-                    listingsHeader
-                    featuredCard
-                    moreNearYou
-                }
-                .padding(.bottom, AppSpacing.lg)
+            switch activeNavTab {
+            case .discover:
+                discoverContent
+            case .map:
+                ListingsMapView()
+            default:
+                Spacer()
+                Text(activeNavTab.rawValue)
+                    .font(.body16(.semiBold))
+                    .foregroundStyle(Color(.neutral, 400))
+                Spacer()
             }
-
         }
         .safeAreaInset(edge: .bottom, spacing: 0) {
             bottomNav
         }
         .background(Color(.neutral, 100))
+    }
+
+    // MARK: - Discover Content
+
+    private var discoverContent: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: AppSpacing.lg) {
+                topBar
+                tabPicker
+                listingsHeader
+                featuredCard
+                moreNearYou
+            }
+            .padding(.bottom, AppSpacing.lg)
+        }
     }
 
     // MARK: - Top Bar
@@ -340,7 +355,7 @@ struct StudentHomeView: View {
         }
     }
 
-    private func nearbyCard(_ listing: Listing) -> some View {
+    private func nearbyCard(_ listing: MockListing) -> some View {
         VStack(alignment: .leading, spacing: 0) {
             // image
             ZStack(alignment: .topTrailing) {
