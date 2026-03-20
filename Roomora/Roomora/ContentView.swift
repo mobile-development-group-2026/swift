@@ -26,6 +26,7 @@ struct ContentView: View {
                                 .multilineTextAlignment(.center)
                             AppButton(title: "Retry", variant: .primary) {
                                 loadTimedOut = false
+                                session.isLoaded = false
                                 Task {
                                     await session.load(clerk: clerk)
                                     if !session.isLoaded {
@@ -37,7 +38,7 @@ struct ContentView: View {
                             .frame(width: 160)
                         } else {
                             PulseLoader()
-                            Text("Fetching your account...")
+                            Text(session.pendingSync != nil ? "Creating your account..." : "Fetching your account...")
                                 .font(.body14())
                                 .foregroundStyle(Color(.neutral, 500))
                         }
@@ -68,6 +69,9 @@ struct ContentView: View {
                                     DesignSystemTestView()
                                 }
                             }
+                    }
+                    .onAppear {
+                        router.popToRoot()
                     }
                 }
             } else {

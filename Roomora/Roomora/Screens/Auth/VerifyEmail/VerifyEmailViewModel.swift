@@ -26,6 +26,15 @@ class VerifyEmailViewModel {
             }
             try await signUp.verifyEmailCode(code)
 
+            // mark as pending sync so ContentView shows "Creating your account..."
+            session.pendingSync = .init(
+                role: role.rawValue.lowercased(),
+                firstName: firstName,
+                lastName: lastName,
+                email: email,
+                phone: phone.isEmpty ? nil : phone
+            )
+
             // wait for Clerk to establish the session token
             try? await Task.sleep(for: .seconds(1))
 
@@ -38,13 +47,14 @@ class VerifyEmailViewModel {
                 phone: phone.isEmpty ? nil : phone
             )
 
+            session.pendingSync = nil
             session.profile = profile
             session.isLoaded = true
             isLoading = false
             return true
         } catch {
             print("verify/sync failed: \(error)")
-            session.isLoaded = true // don't hang the spinner
+            // pendingSync already set — don't set isLoaded so ContentView retries
             isLoading = false
             return false
         }

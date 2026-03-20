@@ -76,9 +76,8 @@ struct BuildYourProfileView: View {
                 }
                 .onChange(of: vm.photoPickerItem) {
                     Task {
-                        if let data = try? await vm.photoPickerItem?.loadTransferable(type: Data.self),
-                           let uiImage = UIImage(data: data) {
-                            vm.profilePhoto = Image(uiImage: uiImage)
+                        if let data = try? await vm.photoPickerItem?.loadTransferable(type: Data.self) {
+                            vm.savePhoto(data: data)
                         }
                     }
                 }
