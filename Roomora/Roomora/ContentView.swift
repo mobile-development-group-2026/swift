@@ -85,15 +85,13 @@ struct ContentView: View {
             }
         }
         .onChange(of: clerk.user?.id) { oldId, newId in
-            router.popToRoot()
-            router.dismissModal()
-
             if newId == nil {
+                router.popToRoot()
+                router.dismissModal()
                 session.clear()
             }
         }
-        .task {
-            // on app launch, load profile if already signed in
+        .task(id: clerk.user?.id) {
             if clerk.user != nil && !session.isLoaded {
                 await session.load(clerk: clerk)
             }

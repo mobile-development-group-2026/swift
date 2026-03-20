@@ -44,6 +44,8 @@ class SignInViewModel {
             isLoading = false
             return true
         } catch {
+            print("signIn failed: \(error)")
+            session.isLoaded = true // don't hang the spinner
             errorMessage = error.localizedDescription
             isLoading = false
             return false
