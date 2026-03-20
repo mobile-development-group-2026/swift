@@ -12,6 +12,31 @@ class OnboardingViewModel {
     // Step 2 — Situation
     var situation: HousingSituation?
 
+    // Step 3 — Student preferences
+    var spotsAvailable = 1
+    var moveInMonth: String?
+    var genderPreference: String?
+    var sleepSchedule: String?
+    var cleanliness: String?
+    var selectedLifestyle: Set<String> = []
+    var selectedRequirements: Set<String> = []
+
+    func toggleLifestyle(_ item: String) {
+        if selectedLifestyle.contains(item) {
+            selectedLifestyle.remove(item)
+        } else {
+            selectedLifestyle.insert(item)
+        }
+    }
+
+    func toggleRequirement(_ item: String) {
+        if selectedRequirements.contains(item) {
+            selectedRequirements.remove(item)
+        } else {
+            selectedRequirements.insert(item)
+        }
+    }
+
     // Step 1 — Profile
     var bio = ""
     var university = ""

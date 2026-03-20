@@ -59,7 +59,7 @@ struct OnboardingView: View {
                 switch vm.step {
                 case 0: OnboardingStep1View(vm: vm)
                 case 1: OnboardingStep2View(vm: vm)
-                case 2: OnboardingStep3View(role: session.role ?? "student")
+                case 2: OnboardingStep3View(vm: vm, role: session.role ?? "student")
                 default: OnboardingStep4View()
                 }
             }
@@ -89,7 +89,7 @@ struct OnboardingView: View {
             .disabled(!vm.canContinue)
             .opacity(vm.canContinue ? 1 : 0.5)
             .padding(.horizontal, AppSpacing.lg)
-            .padding(.bottom, AppSpacing.xl)
+            .padding(.vertical, AppSpacing.lg)
         }
         .background(.white)
     }

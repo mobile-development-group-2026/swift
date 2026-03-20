@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct OnboardingStep3View: View {
+    @Bindable var vm: OnboardingViewModel
     let role: String
 
     private var isStudent: Bool { role == "student" }
@@ -10,18 +11,29 @@ struct OnboardingStep3View: View {
             VStack(alignment: .leading, spacing: AppSpacing.lg) {
                 // header
                 VStack(alignment: .leading, spacing: AppSpacing.xxs) {
-                    Text(isStudent ? "Student" : "Landlord")
-                        .font(.h1(.bold))
-                        .foregroundStyle(Color(.neutral, 900))
-                    Text("preferences")
-                        .font(.h1(.bold))
-                        .foregroundStyle(Color(.purple, 500))
-                    Text(isStudent
-                         ? "Help us find the right place and roommate for you."
-                         : "Set your listing defaults and tenant preferences.")
-                        .font(.body14())
-                        .foregroundStyle(Color(.neutral, 600))
-                        .padding(.top, AppSpacing.xxs)
+                    if isStudent {
+                        Text("Your ideal")
+                            .font(.h1(.bold))
+                            .foregroundStyle(Color(.neutral, 900))
+                        Text("roommate")
+                            .font(.h1(.bold))
+                            .foregroundStyle(Color(.purple, 500))
+                        Text("Help us find someone you'll actually want to live with.")
+                            .font(.body14())
+                            .foregroundStyle(Color(.neutral, 600))
+                            .padding(.top, AppSpacing.xxs)
+                    } else {
+                        Text("Landlord")
+                            .font(.h1(.bold))
+                            .foregroundStyle(Color(.neutral, 900))
+                        Text("preferences")
+                            .font(.h1(.bold))
+                            .foregroundStyle(Color(.purple, 500))
+                        Text("Set your listing defaults and tenant preferences.")
+                            .font(.body14())
+                            .foregroundStyle(Color(.neutral, 600))
+                            .padding(.top, AppSpacing.xxs)
+                    }
                 }
 
                 if isStudent {
@@ -37,82 +49,234 @@ struct OnboardingStep3View: View {
     }
 
     private var studentPreferences: some View {
-        VStack(alignment: .leading, spacing: AppSpacing.lg) {
-            // budget
-            PreferenceSection(icon: "dollarsign.circle", title: "MONTHLY BUDGET") {
-                HStack(spacing: AppSpacing.md) {
-                    preferenceChip("< $500")
-                    preferenceChip("$500–$800")
-                    preferenceChip("$800–$1200")
-                    preferenceChip("$1200+")
+        VStack(alignment: .leading, spacing: AppSpacing.xl) {
+            // spots available
+            PreferenceSection(icon: "person.2.fill", title: "SPOTS AVAILABLE") {
+                VStack(alignment: .leading, spacing: AppSpacing.xs) {
+                    Text("Roommates needed")
+                        .font(.body12())
+                        .foregroundStyle(Color(.neutral, 600))
+                    HStack(spacing: AppSpacing.md) {
+                        ForEach(1...4, id: \.self) { n in
+                            circleChip("\(n)", selected: vm.spotsAvailable == n) {
+                                vm.spotsAvailable = n
+                            }
+                        }
+                    }
+                    Text("How many spots do you have?")
+                        .font(.body12())
+                        .foregroundStyle(Color(.neutral, 500))
                 }
             }
 
-            // move-in
-            PreferenceSection(icon: "calendar", title: "MOVE-IN TIMELINE") {
-                HStack(spacing: AppSpacing.md) {
-                    preferenceChip("ASAP")
-                    preferenceChip("1–2 months")
-                    preferenceChip("3+ months")
+            // move-in month
+            PreferenceSection(icon: "calendar.circle.fill", title: "MOVE-IN MONTH") {
+                let months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
+                              "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+                FlowLayout(spacing: AppSpacing.xs) {
+                    ForEach(months, id: \.self) { month in
+                        selectableChip(month, selected: vm.moveInMonth == month, minWidth: 52) {
+                            vm.moveInMonth = vm.moveInMonth == month ? nil : month
+                        }
+                    }
+                }
+            }
+
+            // gender preference
+            PreferenceSection(icon: "person.crop.circle.fill", title: "GENDER PREFERENCE") {
+                let options = ["No preference", "Same as me", "Women only", "Men only"]
+                FlowLayout(spacing: AppSpacing.xs) {
+                    ForEach(options, id: \.self) { option in
+                        selectableChip(option, selected: vm.genderPreference == option) {
+                            vm.genderPreference = vm.genderPreference == option ? nil : option
+                        }
+                    }
+                }
+            }
+
+            // sleep schedule
+            PreferenceSection(icon: "moon.stars.fill", title: "SLEEP SCHEDULE") {
+                let options: [(emoji: String, label: String, sub: String)] = [
+                    ("🌅", "Early bird", "Up by 7am"),
+                    ("🌙", "Night owl", "Up past midnight"),
+                    ("🎲", "No preference", "Either works"),
+                ]
+                HStack(spacing: AppSpacing.sm) {
+                    ForEach(options, id: \.label) { opt in
+                        lifestyleCard(
+                            emoji: opt.emoji,
+                            title: opt.label,
+                            subtitle: opt.sub,
+                            selected: vm.sleepSchedule == opt.label
+                        ) {
+                            vm.sleepSchedule = vm.sleepSchedule == opt.label ? nil : opt.label
+                        }
+                    }
+                }
+            }
+
+            // cleanliness
+            PreferenceSection(icon: "sparkles", title: "CLEANLINESS") {
+                let options: [(emoji: String, label: String, sub: String)] = [
+                    ("✨", "Very tidy", "Always clean"),
+                    ("🧹", "Moderate", "Clean enough"),
+                    ("😌", "Relaxed", "Lived-in feel"),
+                ]
+                HStack(spacing: AppSpacing.sm) {
+                    ForEach(options, id: \.label) { opt in
+                        lifestyleCard(
+                            emoji: opt.emoji,
+                            title: opt.label,
+                            subtitle: opt.sub,
+                            selected: vm.cleanliness == opt.label
+                        ) {
+                            vm.cleanliness = vm.cleanliness == opt.label ? nil : opt.label
+                        }
+                    }
                 }
             }
 
             // lifestyle
-            PreferenceSection(icon: "moon.stars", title: "LIVING STYLE") {
-                VStack(alignment: .leading, spacing: AppSpacing.xs) {
-                    preferenceChip("Early bird")
-                    preferenceChip("Night owl")
-                    preferenceChip("Quiet & focused")
-                    preferenceChip("Social & active")
+            PreferenceSection(icon: "heart.fill", title: "LIFESTYLE") {
+                let options: [(emoji: String, label: String, sub: String)] = [
+                    ("🚭", "Non-smoker", "No smoking indoors"),
+                    ("🐾", "Pet-friendly", "Fine with animals"),
+                    ("💃", "No parties", "Chill home please"),
+                    ("📚", "Study buddy", "Respect quiet hours"),
+                    ("🍳", "Cooks often", "Shared kitchen use"),
+                    ("🫂", "Limited guests", "Rarely brings people"),
+                ]
+                FlowLayout(spacing: AppSpacing.xs) {
+                    ForEach(options, id: \.label) { opt in
+                        selectableChip(
+                            "\(opt.emoji) \(opt.label)",
+                            selected: vm.selectedLifestyle.contains(opt.label)
+                        ) {
+                            vm.toggleLifestyle(opt.label)
+                        }
+                    }
+                }
+            }
+
+            // requirements
+            PreferenceSection(icon: "checkmark.seal.fill", title: "REQUIREMENTS") {
+                let options = ["✅ Verified students", "🎓 Same university", "📅 Flexible move-in"]
+                FlowLayout(spacing: AppSpacing.xs) {
+                    ForEach(options, id: \.self) { option in
+                        selectableChip(
+                            option,
+                            selected: vm.selectedRequirements.contains(option)
+                        ) {
+                            vm.toggleRequirement(option)
+                        }
+                    }
                 }
             }
         }
     }
-
 
     private var landlordPreferences: some View {
         VStack(alignment: .leading, spacing: AppSpacing.lg) {
-            // price range
-            PreferenceSection(icon: "dollarsign.circle", title: "PRICE RANGE") {
-                HStack(spacing: AppSpacing.md) {
-                    preferenceChip("< $500")
-                    preferenceChip("$500–$1000")
-                    preferenceChip("$1000–$2000")
-                    preferenceChip("$2000+")
+            PreferenceSection(icon: "dollarsign.circle.fill", title: "PRICE RANGE") {
+                FlowLayout(spacing: AppSpacing.xs) {
+                    staticChip("< $500")
+                    staticChip("$500–$1000")
+                    staticChip("$1000–$2000")
+                    staticChip("$2000+")
                 }
             }
 
-            // lease length
-            PreferenceSection(icon: "clock", title: "LEASE LENGTH") {
-                HStack(spacing: AppSpacing.md) {
-                    preferenceChip("Monthly")
-                    preferenceChip("Semester")
-                    preferenceChip("6 months")
-                    preferenceChip("12 months")
+            PreferenceSection(icon: "clock.fill", title: "LEASE LENGTH") {
+                FlowLayout(spacing: AppSpacing.xs) {
+                    staticChip("Monthly")
+                    staticChip("Semester")
+                    staticChip("6 months")
+                    staticChip("12 months")
                 }
             }
 
-            // tenant preferences
             PreferenceSection(icon: "person.2", title: "TENANT PREFERENCES") {
-                VStack(alignment: .leading, spacing: AppSpacing.xs) {
-                    preferenceChip("Students only")
-                    preferenceChip("Verified ID required")
-                    preferenceChip("No pets")
-                    preferenceChip("No smoking")
+                FlowLayout(spacing: AppSpacing.xs) {
+                    staticChip("Students only")
+                    staticChip("Verified ID required")
+                    staticChip("No pets")
+                    staticChip("No smoking")
                 }
             }
         }
     }
 
-    private func preferenceChip(_ label: String) -> some View {
+    private func selectableChip(_ label: String, selected: Bool, minWidth: CGFloat? = nil, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Text(label)
+                .font(.body14(.medium))
+                .foregroundStyle(selected ? Color(.purple, 700) : Color(.neutral, 700))
+                .frame(minWidth: minWidth)
+                .padding(.horizontal, AppSpacing.md)
+                .padding(.vertical, AppSpacing.sm)
+                .background(
+                    RoundedRectangle(cornerRadius: 20)
+                        .fill(selected ? Color(.purple, 100) : .clear)
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: 20)
+                        .stroke(selected ? Color(.purple, 500) : Color(.neutral, 500), lineWidth: 1)
+                )
+        }
+        .buttonStyle(.plain)
+    }
+
+    private func circleChip(_ label: String, selected: Bool, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Text(label)
+                .font(.body14(.semiBold))
+                .foregroundStyle(selected ? Color(.purple, 700) : Color(.neutral, 700))
+                .frame(width: 40, height: 40)
+                .background(
+                    Circle().fill(selected ? Color(.purple, 100) : .clear)
+                )
+                .overlay(
+                    Circle().stroke(selected ? Color(.purple, 500) : Color(.neutral, 500), lineWidth: 1)
+                )
+        }
+        .buttonStyle(.plain)
+    }
+
+    private func lifestyleCard(emoji: String, title: String, subtitle: String, selected: Bool, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            VStack(spacing: AppSpacing.xs) {
+                Text(emoji)
+                    .font(.system(size: 24))
+                Text(title)
+                    .font(.body14(.semiBold))
+                    .foregroundStyle(Color(.neutral, 900))
+                Text(subtitle)
+                    .font(.body10())
+                    .foregroundStyle(Color(.neutral, 600))
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, AppSpacing.md)
+            .background(
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(selected ? Color(.purple, 100) : .white)
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 12)
+                    .stroke(selected ? Color(.purple, 500) : Color(.neutral, 500), lineWidth: selected ? 2 : 1)
+            )
+        }
+        .buttonStyle(.plain)
+    }
+
+    private func staticChip(_ label: String) -> some View {
         Text(label)
             .font(.body14(.medium))
             .foregroundStyle(Color(.neutral, 700))
             .padding(.horizontal, AppSpacing.md)
             .padding(.vertical, AppSpacing.sm)
-            .background(
+            .overlay(
                 RoundedRectangle(cornerRadius: 20)
-                    .stroke(Color(.neutral, 300), lineWidth: 1)
+                    .stroke(Color(.neutral, 500), lineWidth: 1)
             )
     }
 }
@@ -127,16 +291,14 @@ private struct PreferenceSection<Content: View>: View {
         VStack(alignment: .leading, spacing: AppSpacing.sm) {
             HStack(spacing: AppSpacing.xs) {
                 Image(systemName: icon)
-                    .font(.body14())
+                    .font(.body12())
                     .foregroundStyle(Color(.purple, 500))
                 Text(title)
                     .font(.body10(.semiBold))
                     .foregroundStyle(Color(.neutral, 700))
             }
 
-            FlowLayout(spacing: AppSpacing.xs) {
-                content
-            }
+            content
         }
     }
 }
