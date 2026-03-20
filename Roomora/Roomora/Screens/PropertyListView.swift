@@ -135,6 +135,11 @@ struct PropertyListView: View {
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
+                NavigationLink {
+                    ListingsMapView()
+                } label: {
+                    Text("Map View")
+                }
                 Button {
                     showFilters = true
                 } label: {
