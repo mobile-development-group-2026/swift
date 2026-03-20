@@ -8,100 +8,210 @@
 import SwiftUI
 
 struct CreateListingView: View {
+    @State private var currentStep = 1
+    private let totalSteps = 4
+
+    // Basic Info
     @State private var title = ""
     @State private var description = ""
-    @State private var propertyType = ""
+    @State private var selectedPropertyType = ""
     @State private var address = ""
     @State private var city = ""
     @State private var state = ""
     @State private var zipCode = ""
     @State private var rent = ""
     @State private var securityDeposit = ""
-    @State private var utilitiesCost = ""
-    @State private var utilitiesIncluded = false
     @State private var leaseTermMonths = ""
     @State private var availableDate = Date()
-    @State private var bedrooms = 1
-    @State private var bathrooms = 1
-    @State private var petsAllowed = false
-    @State private var partiesAllowed = false
-    @State private var smokingAllowed = false
+    @State private var selectedAmenities: Set<String> = []
+    @State private var selectedRules: Set<String> = []
     @State private var navigateToPreview = false
 
+    let propertyTypes = ["Shared room", "Studio", "1 bedroom", "2 bedrooms", "3+ bedrooms"]
+    let amenities = ["WiFi", "Laundry", "Parking", "AC", "Gym", "Pool", "Balcony", "Furnished"]
+    let rules = ["No smoking", "No parties", "No pets", "No overnight guests", "Quiet after 10pm", "Students only"]
+
     var body: some View {
-        
+        VStack(spacing: 0) {
+
+            // Stepper
+            StepperView(current: currentStep, total: totalSteps)
+                .padding(.horizontal)
+                .padding(.top)
+
             ScrollView {
                 VStack(alignment: .leading, spacing: 24) {
 
-                    Text("Create Listing")
-                        .font(.h1())
-                        .padding(.horizontal)
-
-                    // Basic Info
-                    Group {
-                        SectionHeader(title: "Basic Info")
-                        SimpleTextField(label: "Listing Title", text: $title)
-                        SimpleTextField(label: "Description", text: $description)
-                        SimpleTextField(label: "Property Type (e.g. apartment)", text: $propertyType)
+                    // Header
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("New")
+                            .font(.h1())
+                            .foregroundColor(Color(.neutral, 900))
+                        Text("listing")
+                            .font(.h1())
+                            .foregroundColor(Color(.purple, 500))
+                        Text("Fill in your property details. You can edit anytime before publishing.")
+                            .font(.body14())
+                            .foregroundColor(Color(.neutral, 500))
                     }
+                    .padding(.horizontal)
 
-                    // Location
-                    Group {
-                        SectionHeader(title: "Location")
-                        SimpleTextField(label: "Address", text: $address)
-                        SimpleTextField(label: "City", text: $city)
-                        SimpleTextField(label: "State", text: $state)
-                        SimpleTextField(label: "Zip Code", text: $zipCode)
-                    }
+                    // Details Section
+                    VStack(alignment: .leading, spacing: 16) {
+                        SectionLabel(text: "DETAILS")
 
-                    // Financial
-                    Group {
-                        SectionHeader(title: "Financial Details")
-                        SimpleTextField(label: "Monthly Rent ($)", text: $rent, keyboard: .decimalPad)
-                        SimpleTextField(label: "Security Deposit ($)", text: $securityDeposit, keyboard: .decimalPad)
-                        Toggle("Utilities Included", isOn: $utilitiesIncluded)
-                            .padding(.horizontal)
-                        if utilitiesIncluded {
-                            SimpleTextField(label: "Utilities Cost ($)", text: $utilitiesCost, keyboard: .decimalPad)
+                        // Title
+                        VStack(alignment: .leading, spacing: 6) {
+                            Text("PROPERTY TITLE")
+                                .font(.body12(.semiBold))
+                                .foregroundColor(Color(.neutral, 500))
+                            TextField("e.g. Bright studio near Uniandes", text: $title)
+                                .padding()
+                                .background(Color(.neutral, 100))
+                                .cornerRadius(10)
+                        }
+
+                        // Rent + Deposit
+                        HStack(spacing: 12) {
+                            VStack(alignment: .leading, spacing: 6) {
+                                Text("SECURITY DEPOSIT")
+                                    .font(.body12(.semiBold))
+                                    .foregroundColor(Color(.neutral, 500))
+                                HStack {
+                                    Text("$")
+                                        .foregroundColor(Color(.neutral, 400))
+                                    TextField("850", text: $securityDeposit)
+                                        .keyboardType(.decimalPad)
+                                }
+                                .padding()
+                                .background(Color(.neutral, 100))
+                                .cornerRadius(10)
+                            }
+
+                            VStack(alignment: .leading, spacing: 6) {
+                                Text("MONTHLY RENT")
+                                    .font(.body12(.semiBold))
+                                    .foregroundColor(Color(.neutral, 500))
+                                HStack {
+                                    Text("$")
+                                        .foregroundColor(Color(.neutral, 400))
+                                    TextField("850", text: $rent)
+                                        .keyboardType(.decimalPad)
+                                }
+                                .padding()
+                                .background(Color(.neutral, 100))
+                                .cornerRadius(10)
+                            }
+                        }
+
+                        // Property Type
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("PROPERTY TYPE")
+                                .font(.body12(.semiBold))
+                                .foregroundColor(Color(.neutral, 500))
+                            FlexibleChips(
+                                options: propertyTypes,
+                                selected: Binding(
+                                    get: { selectedPropertyType.isEmpty ? [] : [selectedPropertyType] },
+                                    set: { selectedPropertyType = $0.first ?? "" }
+                                ),
+                                multiSelect: false,
+                                selectedColor: Color(.purple, 500)
+                            )
+                        }
+
+                        // Lease + Available
+                        HStack(spacing: 12) {
+                            VStack(alignment: .leading, spacing: 6) {
+                                Text("LEASE LENGTH")
+                                    .font(.body12(.semiBold))
+                                    .foregroundColor(Color(.neutral, 500))
+                                TextField("12 months", text: $leaseTermMonths)
+                                    .keyboardType(.numberPad)
+                                    .padding()
+                                    .background(Color(.neutral, 100))
+                                    .cornerRadius(10)
+                            }
+
+                            VStack(alignment: .leading, spacing: 6) {
+                                Text("AVAILABLE FROM")
+                                    .font(.body12(.semiBold))
+                                    .foregroundColor(Color(.neutral, 500))
+                                DatePicker("", selection: $availableDate, displayedComponents: .date)
+                                    .labelsHidden()
+                                    .padding()
+                                    .background(Color(.neutral, 100))
+                                    .cornerRadius(10)
+                            }
+                        }
+
+                        // Amenities
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("AMENITIES")
+                                .font(.body12(.semiBold))
+                                .foregroundColor(Color(.neutral, 500))
+                            FlexibleChips(
+                                options: amenities,
+                                selected: $selectedAmenities,
+                                multiSelect: true,
+                                selectedColor: Color(.purple, 500)
+                            )
+                        }
+
+                        // Rules
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("NON-NEGOTIABLE RULES")
+                                .font(.body12(.semiBold))
+                                .foregroundColor(Color(.neutral, 500))
+                            FlexibleChips(
+                                options: rules,
+                                selected: $selectedRules,
+                                multiSelect: true,
+                                selectedColor: Color(.green, 500)
+                            )
+                        }
+
+                        // Description
+                        VStack(alignment: .leading, spacing: 6) {
+                            HStack {
+                                Text("DESCRIPTION")
+                                    .font(.body12(.semiBold))
+                                    .foregroundColor(Color(.neutral, 500))
+                                Spacer()
+                                Text("\(description.count) / 80 min")
+                                    .font(.body12())
+                                    .foregroundColor(Color(.neutral, 400))
+                            }
+                            TextEditor(text: $description)
+                                .frame(minHeight: 120)
+                                .padding()
+                                .background(Color(.neutral, 100))
+                                .cornerRadius(10)
                         }
                     }
-
-                    // Lease
-                    Group {
-                        SectionHeader(title: "Lease Info")
-                        SimpleTextField(label: "Lease Length (months)", text: $leaseTermMonths, keyboard: .numberPad)
-                        DatePicker("Available Date", selection: $availableDate, displayedComponents: .date)
-                            .padding(.horizontal)
-                    }
-
-                    // Details
-                    Group {
-                        SectionHeader(title: "Details")
-                        Stepper("Bedrooms: \(bedrooms)", value: $bedrooms, in: 1...10)
-                            .padding(.horizontal)
-                        Stepper("Bathrooms: \(bathrooms)", value: $bathrooms, in: 1...10)
-                            .padding(.horizontal)
-                    }
-
-                    // House Rules
-                    Group {
-                        SectionHeader(title: "House Rules")
-                        Toggle("Pets Allowed", isOn: $petsAllowed).padding(.horizontal)
-                        Toggle("Parties Allowed", isOn: $partiesAllowed).padding(.horizontal)
-                        Toggle("Smoking Allowed", isOn: $smokingAllowed).padding(.horizontal)
-                    }
-
-                    AppButton(title: "Preview Listing") {
-                        navigateToPreview = true
-                    }
-                    .padding()
+                    .padding(.horizontal)
                 }
                 .padding(.vertical)
             }
-            .navigationDestination(isPresented: $navigateToPreview) {
-                ListingPreviewView(listing: buildListing())
+
+            // Bottom Buttons
+            VStack(spacing: 8) {
+                AppButton(title: "Publish listing →") {
+                    navigateToPreview = true
+                }
+                Button("Save as draft") {}
+                    .font(.body14(.semiBold))
+                    .foregroundColor(Color(.neutral, 500))
+                    .padding(.bottom, 8)
             }
-        
+            .padding(.horizontal)
+            .padding(.top, 8)
+            .background(.white)
+        }
+        .navigationDestination(isPresented: $navigateToPreview) {
+            ListingPreviewView(listing: buildListing())
+        }
+        .navigationBarTitleDisplayMode(.inline)
     }
 
     private func buildListing() -> Listing {
@@ -109,46 +219,84 @@ struct CreateListingView: View {
             listingType: "property",
             title: title,
             description: description,
-            propertyType: propertyType,
+            propertyType: selectedPropertyType,
             address: address,
             city: city,
             state: state,
             zipCode: zipCode,
             rent: Double(rent) ?? 0,
             securityDeposit: Double(securityDeposit) ?? 0,
-            utilitiesIncluded: utilitiesIncluded,
-            utilitiesCost: Double(utilitiesCost) ?? 0,
             availableDate: availableDate,
-            leaseTermMonths: Int(leaseTermMonths) ?? 12,
-            bedrooms: bedrooms,
-            bathrooms: bathrooms,
-            petsAllowed: petsAllowed,
-            partiesAllowed: partiesAllowed,
-            smokingAllowed: smokingAllowed
+            leaseTermMonths: Int(leaseTermMonths) ?? 12
         )
     }
 }
 
-struct SectionHeader: View {
-    let title: String
+// MARK: - Helper Views
+
+struct StepperView: View {
+    let current: Int
+    let total: Int
+
     var body: some View {
-        Text(title)
-            .font(.h3())
-            .padding(.horizontal)
+        HStack(spacing: 0) {
+            ForEach(1...total, id: \.self) { step in
+                Circle()
+                    .fill(step <= current ? Color(.purple, 500) : Color(.neutral, 200))
+                    .frame(width: 28, height: 28)
+                    .overlay(
+                        Text("\(step)")
+                            .font(.body12(.semiBold))
+                            .foregroundColor(step <= current ? .white : Color(.neutral, 400))
+                    )
+                if step < total {
+                    Rectangle()
+                        .fill(step < current ? Color(.purple, 500) : Color(.neutral, 200))
+                        .frame(height: 2)
+                }
+            }
+        }
     }
 }
 
-struct SimpleTextField: View {
-    let label: String
-    @Binding var text: String
-    var keyboard: UIKeyboardType = .default
+struct SectionLabel: View {
+    let text: String
+    var body: some View {
+        Text(text)
+            .font(.body12(.semiBold))
+            .foregroundColor(Color(.neutral, 400))
+    }
+}
+
+struct FlexibleChips: View {
+    let options: [String]
+    @Binding var selected: Set<String>
+    let multiSelect: Bool
+    let selectedColor: Color
 
     var body: some View {
-        TextField(label, text: $text)
-            .keyboardType(keyboard)
-            .padding()
-            .background(Color(.neutral, 100))
-            .cornerRadius(10)
-            .padding(.horizontal)
+        LazyVGrid(columns: [GridItem(.adaptive(minimum: 100))], spacing: 8) {
+            ForEach(options, id: \.self) { option in
+                Button {
+                    if multiSelect {
+                        if selected.contains(option) {
+                            selected.remove(option)
+                        } else {
+                            selected.insert(option)
+                        }
+                    } else {
+                        selected = [option]
+                    }
+                } label: {
+                    Text(option)
+                        .font(.body14())
+                        .foregroundColor(selected.contains(option) ? .white : Color(.neutral, 700))
+                        .padding(.horizontal, 14)
+                        .padding(.vertical, 8)
+                        .background(selected.contains(option) ? selectedColor : Color(.neutral, 100))
+                        .cornerRadius(20)
+                }
+            }
+        }
     }
 }
