@@ -9,10 +9,14 @@
 /* Begin PBXBuildFile section */
 		2715B0AB2F63819B00FF286F /* ClerkKit in Frameworks */ = {isa = PBXBuildFile; productRef = 2715B0AA2F63819B00FF286F /* ClerkKit */; };
 		2715B0AD2F63819B00FF286F /* ClerkKitUI in Frameworks */ = {isa = PBXBuildFile; productRef = 2715B0AC2F63819B00FF286F /* ClerkKitUI */; };
+		B448D1C02F6D162500916AE4 /* ClerkKit in Frameworks */ = {isa = PBXBuildFile; productRef = B448D1BB2F6D162500916AE4 /* ClerkKit */; };
+		B448D1C12F6D162500916AE4 /* ClerkKitUI in Frameworks */ = {isa = PBXBuildFile; productRef = B448D1BD2F6D162500916AE4 /* ClerkKitUI */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		2715B09B2F637EF500FF286F /* Roomora.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Roomora.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		B448D1C62F6D162500916AE4 /* Roomora copy.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Roomora copy.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		B448D1C82F6D162500916AE4 /* Roomora copy-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = "Roomora copy-Info.plist"; path = "/Users/Jeronimo.cifci/Documents/swift_1/Roomora/Roomora copy-Info.plist"; sourceTree = "<absolute>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -23,6 +27,54 @@
 			);
 			target = 2715B09A2F637EF500FF286F /* Roomora */;
 		};
+		B448D1C72F6D162500916AE4 /* Exceptions for "Roomora" folder in "Roomora copy" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				.gitignore,
+				Assets.xcassets,
+				Components/AppButton.swift,
+				Components/AppTextField.swift,
+				Components/ErrorMessage.swift,
+				Components/ListingCard.swift,
+				Components/PasswordStrengthBar.swift,
+				Components/PillBadge.swift,
+				Components/RolePicker.swift,
+				ContentView.swift,
+				"Helpers/View+DismissKeyboard.swift",
+				Info.plist,
+				Models/Listing.swift,
+				Models/UserRole.swift,
+				Navigation/AppModal.swift,
+				Navigation/AppRoute.swift,
+				Navigation/AppRouter.swift,
+				"Resources/Sora-Bold.ttf",
+				"Resources/Sora-ExtraBold.ttf",
+				"Resources/Sora-ExtraLight.ttf",
+				"Resources/Sora-Light.ttf",
+				"Resources/Sora-Medium.ttf",
+				"Resources/Sora-Regular.ttf",
+				"Resources/Sora-SemiBold.ttf",
+				"Resources/Sora-Thin.ttf",
+				RoomoraApp.swift,
+				Screens/Auth/SignIn/SignInView.swift,
+				Screens/Auth/SignIn/SignInViewModel.swift,
+				Screens/Auth/SignUp/SignUpView.swift,
+				Screens/Auth/SignUp/SignUpViewModel.swift,
+				Screens/Auth/VerifyEmail/VerifyEmailView.swift,
+				Screens/Auth/VerifyEmail/VerifyEmailViewModel.swift,
+				Screens/CreateListingView.swift,
+				Screens/DesignSystemTestView.swift,
+				Screens/HomeView.swift,
+				Screens/LandingView.swift,
+				Screens/LandlordProfileView.swift,
+				Screens/ListingPreviewView.swift,
+				Services/ListingService.swift,
+				Theme/AppColors.swift,
+				Theme/AppSpacing.swift,
+				Theme/AppTypography.swift,
+			);
+			target = B448D1BA2F6D162500916AE4 /* Roomora copy */;
+		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -30,6 +82,7 @@
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
 				2715B10C2F63B4FB00FF286F /* Exceptions for "Roomora" folder in "Roomora" target */,
+				B448D1C72F6D162500916AE4 /* Exceptions for "Roomora" folder in "Roomora copy" target */,
 			);
 			path = Roomora;
 			sourceTree = "<group>";
@@ -46,6 +99,15 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		B448D1BF2F6D162500916AE4 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				B448D1C02F6D162500916AE4 /* ClerkKit in Frameworks */,
+				B448D1C12F6D162500916AE4 /* ClerkKitUI in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -53,6 +115,7 @@
 			isa = PBXGroup;
 			children = (
 				2715B09D2F637EF500FF286F /* Roomora */,
+				B448D1C82F6D162500916AE4 /* Roomora copy-Info.plist */,
 				2715B09C2F637EF500FF286F /* Products */,
 			);
 			sourceTree = "<group>";
@@ -61,6 +124,7 @@
 			isa = PBXGroup;
 			children = (
 				2715B09B2F637EF500FF286F /* Roomora.app */,
+				B448D1C62F6D162500916AE4 /* Roomora copy.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -90,6 +154,30 @@
 			);
 			productName = Roomora;
 			productReference = 2715B09B2F637EF500FF286F /* Roomora.app */;
+			productType = "com.apple.product-type.application";
+		};
+		B448D1BA2F6D162500916AE4 /* Roomora copy */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = B448D1C32F6D162500916AE4 /* Build configuration list for PBXNativeTarget "Roomora copy" */;
+			buildPhases = (
+				B448D1BE2F6D162500916AE4 /* Sources */,
+				B448D1BF2F6D162500916AE4 /* Frameworks */,
+				B448D1C22F6D162500916AE4 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				2715B09D2F637EF500FF286F /* Roomora */,
+			);
+			name = "Roomora copy";
+			packageProductDependencies = (
+				B448D1BB2F6D162500916AE4 /* ClerkKit */,
+				B448D1BD2F6D162500916AE4 /* ClerkKitUI */,
+			);
+			productName = Roomora;
+			productReference = B448D1C62F6D162500916AE4 /* Roomora copy.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -125,6 +213,7 @@
 			projectRoot = "";
 			targets = (
 				2715B09A2F637EF500FF286F /* Roomora */,
+				B448D1BA2F6D162500916AE4 /* Roomora copy */,
 			);
 		};
 /* End PBXProject section */
@@ -137,10 +226,24 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		B448D1C22F6D162500916AE4 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		2715B0972F637EF500FF286F /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		B448D1BE2F6D162500916AE4 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -278,7 +381,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = DS7G4DV9NL;
+				DEVELOPMENT_TEAM = 749B3WLLT3;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Roomora/Info.plist;
@@ -311,10 +414,76 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = DS7G4DV9NL;
+				DEVELOPMENT_TEAM = 749B3WLLT3;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Roomora/Info.plist;
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.renegade.Roomora;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		B448D1C42F6D162500916AE4 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 749B3WLLT3;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "Roomora copy-Info.plist";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.renegade.Roomora;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		B448D1C52F6D162500916AE4 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 749B3WLLT3;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "Roomora copy-Info.plist";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -358,10 +527,27 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
+		B448D1C32F6D162500916AE4 /* Build configuration list for PBXNativeTarget "Roomora copy" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				B448D1C42F6D162500916AE4 /* Debug */,
+				B448D1C52F6D162500916AE4 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
 		2715B0A92F63819B00FF286F /* XCRemoteSwiftPackageReference "clerk-ios" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/clerk/clerk-ios";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.0.5;
+			};
+		};
+		B448D1BC2F6D162500916AE4 /* XCRemoteSwiftPackageReference "clerk-ios" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/clerk/clerk-ios";
 			requirement = {
@@ -380,6 +566,16 @@
 		2715B0AC2F63819B00FF286F /* ClerkKitUI */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 2715B0A92F63819B00FF286F /* XCRemoteSwiftPackageReference "clerk-ios" */;
+			productName = ClerkKitUI;
+		};
+		B448D1BB2F6D162500916AE4 /* ClerkKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = B448D1BC2F6D162500916AE4 /* XCRemoteSwiftPackageReference "clerk-ios" */;
+			productName = ClerkKit;
+		};
+		B448D1BD2F6D162500916AE4 /* ClerkKitUI */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = B448D1BC2F6D162500916AE4 /* XCRemoteSwiftPackageReference "clerk-ios" */;
 			productName = ClerkKitUI;
 		};
 /* End XCSwiftPackageProductDependency section */

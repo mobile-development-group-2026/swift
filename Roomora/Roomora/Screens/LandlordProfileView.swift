@@ -6,15 +6,13 @@
 //
 
 import SwiftUI
+import ClerkKit
 
 struct LandlordProfileView: View {
-    let landlordName: String
-    let listings: [Listing]
-
-    var activeListings: [Listing] {
-        listings.filter { $0.status == "active" }
-    }
     @Environment(AppRouter.self) private var router
+    @State private var listings: [Listing] = []
+    @State private var isLoading = true
+    @State private var errorMessage: String?
 
     var body: some View {
         ScrollView {
@@ -26,15 +24,15 @@ struct LandlordProfileView: View {
                         .fill(Color(.purple, 500))
                         .frame(width: 70, height: 70)
                         .overlay(
-                            Text(String(landlordName.prefix(1)))
+                            Text("L")
                                 .font(.h2())
                                 .foregroundColor(.white)
                         )
 
                     VStack(alignment: .leading, spacing: 4) {
-                        Text(landlordName)
+                        Text("My Listings")
                             .font(.h3())
-                        Text("\(activeListings.count) active listing\(activeListings.count == 1 ? "" : "s")")
+                        Text("\(listings.count) listing\(listings.count == 1 ? "" : "s")")
                             .font(.body16())
                             .foregroundColor(Color(.neutral, 400))
                     }
@@ -43,25 +41,28 @@ struct LandlordProfileView: View {
 
                 Divider()
 
-                // Active Listings
+                // Listings
                 VStack(alignment: .leading, spacing: 16) {
                     Text("Active Listings")
                         .font(.h3())
                         .padding(.horizontal)
 
-                    if activeListings.isEmpty {
-                        Text("No active listings yet.")
+                    if isLoading {
+                        ProgressView()
+                            .frame(maxWidth: .infinity)
+                            .padding()
+                    } else if listings.isEmpty {
+                        Text("No listings yet.")
                             .font(.body16())
                             .foregroundColor(Color(.neutral, 400))
                             .padding(.horizontal)
                     } else {
-                        ForEach(activeListings) { listing in
+                        ForEach(listings) { listing in
                             ListingCard(listing: listing)
                         }
                     }
                 }
 
-                // Add New Listing
                 AppButton(title: "Add New Listing") {
                     router.navigate(to: .createListing)
                 }
@@ -71,5 +72,25 @@ struct LandlordProfileView: View {
         }
         .navigationTitle("My Profile")
         .navigationBarTitleDisplayMode(.inline)
+        .task {
+            await loadListings()
+        }
+        .alert("Error", isPresented: .constant(errorMessage != nil)) {
+            Button("OK") { errorMessage = nil }
+        } message: {
+            Text(errorMessage ?? "")
+        }
+    }
+
+    private func loadListings() async {
+        isLoading = true
+        do {
+            let token = try await Clerk.shared.session?.getToken() ?? ""
+            try await ListingService.shared.syncUser(token: token)
+            listings = try await ListingService.shared.fetchMyListings(token: token)
+        } catch {
+            errorMessage = "Failed to load listings: \(error.localizedDescription)"
+        }
+        isLoading = false
     }
 }

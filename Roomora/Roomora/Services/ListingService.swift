@@ -73,9 +73,24 @@ class ListingService {
             throw URLError(.badServerResponse)
         }
     }
+    func fetchMyListings(token: String) async throws -> [Listing] {
+        guard let url = URL(string: "\(baseURL)/listings") else {
+            throw URLError(.badURL)
+        }
+
+        var request = URLRequest(url: url)
+        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+
+        let (data, _) = try await URLSession.shared.data(for: request)
+        let decoded = try JSONDecoder().decode(ListingsResponse.self, from: data)
+        return decoded.data
+    }
 }
 
 // MARK: - Response Models
 struct ListingResponse: Codable {
     let data: Listing
+}
+struct ListingsResponse: Codable {
+    let data: [Listing]
 }

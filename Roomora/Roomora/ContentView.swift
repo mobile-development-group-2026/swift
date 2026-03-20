@@ -25,7 +25,7 @@ struct ContentView: View {
                             case .listingPreview(let listing):
                                 ListingPreviewView(listing: listing)
                             case .landlordProfile:
-                                LandlordProfileView(landlordName: clerk.user?.firstName ?? "Landlord", listings: [])
+                                LandlordProfileView()
                             }
                         }
                 }
@@ -46,7 +46,7 @@ struct ContentView: View {
                             case .listingPreview(let listing):
                                 ListingPreviewView(listing: listing)
                             case .landlordProfile:
-                                LandlordProfileView(landlordName: clerk.user?.firstName ?? "Landlord", listings: [])
+                                LandlordProfileView()
                             }
                         }
                 }
