@@ -90,9 +90,6 @@ struct ContentView: View {
 
             if newId == nil {
                 session.clear()
-            } else if oldId == nil && !session.isLoaded {
-                // user just signed in and profile wasn't set by sign-in/sign-up flow
-                Task { await session.load(clerk: clerk) }
             }
         }
         .task {

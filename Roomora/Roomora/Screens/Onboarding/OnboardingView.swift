@@ -22,6 +22,24 @@ struct OnboardingView: View {
                 .disabled(vm.step == 0)
 
                 Spacer()
+
+                #if DEBUG
+                Button("DEV Reset") {
+                    // nuke Clerk keychain data
+                    let secItemClasses = [
+                        kSecClassGenericPassword,
+                        kSecClassInternetPassword
+                    ]
+                    for itemClass in secItemClasses {
+                        SecItemDelete([kSecClass: itemClass] as CFDictionary)
+                    }
+                    session.clear()
+                    // force restart to pick up cleared state
+                    exit(0)
+                }
+                .font(.body12(.semiBold))
+                .foregroundStyle(.red)
+                #endif
             }
             .padding(.horizontal, AppSpacing.lg)
             .padding(.vertical, AppSpacing.sm)

@@ -171,6 +171,7 @@ struct SignUpView: View {
                 .padding(.horizontal, AppSpacing.lg)
                 .padding(.top, AppSpacing.md)
             }
+            .scrollDismissesKeyboard(.interactively)
         }
         .background(.white)
         .tint(Color(.neutral, 900))

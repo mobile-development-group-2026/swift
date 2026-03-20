@@ -26,6 +26,9 @@ class VerifyEmailViewModel {
             }
             try await signUp.verifyEmailCode(code)
 
+            // wait for Clerk to establish the session token
+            try? await Task.sleep(for: .seconds(1))
+
             let profile = try await APIClient.shared.syncUser(
                 clerk: clerk,
                 role: role.rawValue.lowercased(),
@@ -40,7 +43,8 @@ class VerifyEmailViewModel {
             isLoading = false
             return true
         } catch {
-            errorMessage = error.localizedDescription
+            print("verify/sync failed: \(error)")
+            session.isLoaded = true // don't hang the spinner
             isLoading = false
             return false
         }

@@ -10,21 +10,13 @@ class UserSession {
     var firstName: String? { profile?.firstName }
     var isOnboarded: Bool { profile?.onboarded ?? false }
 
-    /// Fetches user profile from the backend. Called when the user is signed in.
-    /// Skips if the profile was already set
+    // read user from backend (app relaunch with existing session)
     func load(clerk: Clerk) async {
         if isLoaded { return }
-        // retry once — Clerk token may not be ready immediately after sign-up
-        for attempt in 1...2 {
-            do {
-                profile = try await APIClient.shared.fetchProfile(clerk: clerk)
-                break
-            } catch {
-                print("Failed to load profile (attempt \(attempt)): \(error)")
-                if attempt < 2 {
-                    try? await Task.sleep(for: .seconds(1))
-                }
-            }
+        do {
+            profile = try await APIClient.shared.fetchProfile(clerk: clerk)
+        } catch {
+            print("load failed: \(error)")
         }
         isLoaded = true
     }

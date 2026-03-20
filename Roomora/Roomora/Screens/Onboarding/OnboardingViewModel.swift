@@ -61,23 +61,6 @@ class OnboardingViewModel {
         isLoading = true
         errorMessage = nil
         do {
-            // Save student profile fields
-            var studentFields: [String: Any] = [
-                "bio": bio,
-                "university": university
-            ]
-            if let year = Int(birthYear) {
-                studentFields["birth_year"] = year
-            }
-            if let year = Int(graduationYear) {
-                studentFields["graduation_year"] = year
-            }
-            _ = try await APIClient.shared.updateStudentProfile(
-                clerk: clerk,
-                fields: studentFields
-            )
-
-            // Mark onboarded
             let profile = try await APIClient.shared.updateProfile(
                 clerk: clerk,
                 fields: ["onboarded": true]
