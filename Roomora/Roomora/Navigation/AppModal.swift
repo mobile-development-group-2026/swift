@@ -12,6 +12,7 @@ enum ModalStyle {
 enum AppModal: Identifiable {
     case signIn
     case testPopup
+    case listingPreview(Listing)
 
     // turns current case name into a string id to satisfy Identifiable type
     var id: String { String(describing: self) }

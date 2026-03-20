@@ -9,6 +9,12 @@ struct HomeView: View {
             UserButton()
             Text("Welcome to Roomora!")
                 .font(.title2)
+            AppButton(title: "Create Listing") {
+                router.navigate(to: .createListing)
+            }
+            AppButton(title: "My Profile", variant: .secondary) {
+                router.navigate(to: .landlordProfile)
+            }
             AppButton(title: "Test Popup", variant: .secondary) {
                 router.present(.testPopup, style: .popup)
             }
