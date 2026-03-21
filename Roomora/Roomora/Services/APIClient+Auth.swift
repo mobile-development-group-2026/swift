@@ -56,6 +56,17 @@ struct LifestyleProfileResponse: Codable {
     let requirements: [String]?
 }
 
+struct ListingProfileResponse: Codable {
+    let id: String
+    let maxBudget: Int?
+    let propertyType: String?
+    let moveInDate: String?
+    let leaseLengthMonths: Int?
+    let maxDistance: Int?
+    let amenities: [String]?
+    let preferences: [String]?
+}
+
 struct SyncResponse: Codable {
     let id: String
     let clerkId: String
@@ -71,4 +82,5 @@ struct SyncResponse: Codable {
     let updatedAt: String
     let studentProfile: StudentProfileResponse?
     let lifestyleProfile: LifestyleProfileResponse?
+    let listingProfile: ListingProfileResponse?
 }

@@ -17,4 +17,9 @@ extension APIClient {
         let data = try await patch(path: "/profile/lifestyle", body: ["lifestyle_profile": fields], clerk: clerk)
         return try decodeData(LifestyleProfileResponse.self, from: data)
     }
+
+    func updateListingProfile(clerk: Clerk, fields: [String: Any]) async throws -> ListingProfileResponse {
+        let data = try await patch(path: "/profile/listing_preferences", body: ["listing_profile": fields], clerk: clerk)
+        return try decodeData(ListingProfileResponse.self, from: data)
+    }
 }

@@ -14,6 +14,10 @@ class OnboardingViewModel {
     var buildProfile = BuildYourProfileViewModel()
     var situation = RoommateSituationViewModel()
     var preferences = RoommatePreferencesViewModel()
+    var listingPrefs = ListingPreferencesViewModel()
+
+    /// true when user picked "I need a place" (needPlace)
+    var needsPlace: Bool { situation.situation == .needPlace }
 
     func nextStep(clerk: Clerk) async {
         if step == 0 {
@@ -78,8 +82,12 @@ class OnboardingViewModel {
         isLoading = true
         errorMessage = nil
         do {
-            // Save lifestyle/roommate preferences
-            await saveLifestyleProfile(clerk: clerk)
+            // Save step 3 data based on situation
+            if needsPlace {
+                await saveListingProfile(clerk: clerk)
+            } else {
+                await saveLifestyleProfile(clerk: clerk)
+            }
             if errorMessage != nil {
                 isLoading = false
                 return
@@ -127,6 +135,36 @@ class OnboardingViewModel {
             _ = try await APIClient.shared.updateLifestyleProfile(clerk: clerk, fields: fields)
         } catch {
             print("saveLifestyleProfile failed: \(error)")
+            errorMessage = error.localizedDescription
+        }
+    }
+
+    private func saveListingProfile(clerk: Clerk) async {
+        var fields: [String: Any] = [:]
+        let lp = listingPrefs
+
+        if let budget = lp.maxBudget { fields["max_budget"] = budget }
+        if let type = lp.propertyType { fields["property_type"] = type }
+
+        let formatter = ISO8601DateFormatter()
+        formatter.formatOptions = [.withFullDate]
+        fields["move_in_date"] = formatter.string(from: lp.moveInDate)
+
+        fields["lease_length_months"] = lp.leaseLength
+        if let dist = lp.maxDistance { fields["max_distance"] = dist }
+
+        if !lp.selectedAmenities.isEmpty {
+            fields["amenities"] = Array(lp.selectedAmenities.sorted())
+        }
+
+        if !lp.selectedPreferences.isEmpty {
+            fields["preferences"] = Array(lp.selectedPreferences.sorted())
+        }
+
+        do {
+            _ = try await APIClient.shared.updateListingProfile(clerk: clerk, fields: fields)
+        } catch {
+            print("saveListingProfile failed: \(error)")
             errorMessage = error.localizedDescription
         }
     }

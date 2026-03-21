@@ -67,7 +67,12 @@ struct OnboardingView: View {
                 switch vm.step {
                 case 0: BuildYourProfileView(vm: vm.buildProfile)
                 case 1: RoommateSituationView(vm: vm.situation)
-                default: RoommatePreferencesView(vm: vm.preferences, role: session.role ?? "student")
+                default:
+                    if vm.needsPlace {
+                        ListingPreferencesView(vm: vm.listingPrefs)
+                    } else {
+                        RoommatePreferencesView(vm: vm.preferences, role: session.role ?? "student")
+                    }
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
