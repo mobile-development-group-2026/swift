@@ -8,6 +8,14 @@ struct OnboardingView: View {
     @State private var vm = OnboardingViewModel()
 
     var body: some View {
+        if vm.showCelebration {
+            OnboardingCompleteView(
+                firstName: session.firstName ?? "there",
+                role: session.role ?? "student"
+            ) {
+                vm.finishOnboarding(session: session)
+            }
+        } else {
         VStack(spacing: 0) {
             // top bar
             HStack {
@@ -22,6 +30,24 @@ struct OnboardingView: View {
                 .disabled(vm.step == 0)
 
                 Spacer()
+
+                #if DEBUG
+                Button("DEV Reset") {
+                    // nuke Clerk keychain data
+                    let secItemClasses = [
+                        kSecClassGenericPassword,
+                        kSecClassInternetPassword
+                    ]
+                    for itemClass in secItemClasses {
+                        SecItemDelete([kSecClass: itemClass] as CFDictionary)
+                    }
+                    session.clear()
+                    // force restart to pick up cleared state
+                    exit(0)
+                }
+                .font(.body12(.semiBold))
+                .foregroundStyle(.red)
+                #endif
             }
             .padding(.horizontal, AppSpacing.lg)
             .padding(.vertical, AppSpacing.sm)
@@ -39,10 +65,19 @@ struct OnboardingView: View {
             // step content
             Group {
                 switch vm.step {
-                case 0: OnboardingStep1View(vm: vm)
-                case 1: OnboardingStep2View()
-                case 2: OnboardingStep3View()
-                default: OnboardingStep4View()
+                case 0: BuildYourProfileView(vm: vm.buildProfile, role: session.role ?? "student")
+                case 1:
+                    if session.role == "landlord" {
+                        NewListingView(vm: vm.newListing)
+                    } else {
+                        RoommateSituationView(vm: vm.situation)
+                    }
+                default:
+                    if vm.needsPlace {
+                        ListingPreferencesView(vm: vm.listingPrefs)
+                    } else {
+                        RoommatePreferencesView(vm: vm.preferences, role: session.role ?? "student")
+                    }
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -62,18 +97,22 @@ struct OnboardingView: View {
                     : "Continue  →",
                 variant: .primary
             ) {
-                if vm.isLastStep {
-                    Task { await vm.complete(clerk: clerk, session: session) }
-                } else {
-                    vm.nextStep()
+                Task {
+                    if vm.isLastStep {
+                        await vm.complete(clerk: clerk)
+                    } else {
+                        await vm.nextStep(clerk: clerk, role: session.role ?? "student")
+                    }
                 }
             }
             .disabled(!vm.canContinue)
             .opacity(vm.canContinue ? 1 : 0.5)
             .padding(.horizontal, AppSpacing.lg)
-            .padding(.bottom, AppSpacing.xl)
+            .padding(.vertical, AppSpacing.lg)
         }
         .background(.white)
+        .onAppear { vm.isLandlord = session.role == "landlord" }
+        }
     }
 }
 

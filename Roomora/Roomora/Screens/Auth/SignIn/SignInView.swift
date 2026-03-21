@@ -115,10 +115,10 @@ struct SignInView: View {
                 }
                 .padding(.horizontal, AppSpacing.lg)
             }
+            .scrollDismissesKeyboard(.interactively)
         }
         .background(.white)
         .tint(Color(.neutral, 900))
-        .dismissKeyboardOnTap()
     }
 }
 

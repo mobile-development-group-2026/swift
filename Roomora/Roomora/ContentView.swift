@@ -6,20 +6,52 @@ struct ContentView: View {
     @Environment(Clerk.self) private var clerk
     @Environment(UserSession.self) private var session
     @State private var router = AppRouter()
+    @State private var loadTimedOut = false
 
     var body: some View {
         Group {
             if clerk.user != nil {
                 if !session.isLoaded {
                     VStack(spacing: AppSpacing.md) {
-                        ProgressView()
-                            .tint(Color(.purple, 500))
-                        Text("Setting up your account...")
-                            .font(.body14())
-                            .foregroundStyle(Color(.neutral, 500))
+                        if loadTimedOut {
+                            Image(systemName: "wifi.exclamationmark")
+                                .font(.system(size: 32))
+                                .foregroundStyle(Color(.neutral, 400))
+                            Text("Couldn't reach the server")
+                                .font(.body16(.semiBold))
+                                .foregroundStyle(Color(.neutral, 700))
+                            Text("The server may be waking up. Tap to try again.")
+                                .font(.body14())
+                                .foregroundStyle(Color(.neutral, 500))
+                                .multilineTextAlignment(.center)
+                            AppButton(title: "Retry", variant: .primary) {
+                                loadTimedOut = false
+                                session.isLoaded = false
+                                Task {
+                                    await session.load(clerk: clerk)
+                                    if !session.isLoaded {
+                                        try? await Task.sleep(for: .seconds(15))
+                                        if !session.isLoaded { loadTimedOut = true }
+                                    }
+                                }
+                            }
+                            .frame(width: 160)
+                        } else {
+                            PulseLoader()
+                            Text(session.pendingSync != nil ? "Creating your account..." : "Fetching your account...")
+                                .font(.body14())
+                                .foregroundStyle(Color(.neutral, 500))
+                        }
                     }
+                    .padding(.horizontal, AppSpacing.lg)
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .background(.white)
+                    .task(id: session.isLoaded) {
+                        if !session.isLoaded {
+                            try? await Task.sleep(for: .seconds(15))
+                            if !session.isLoaded { loadTimedOut = true }
+                        }
+                    }
                 } else if !session.isOnboarded {
                     OnboardingView()
                         .environment(Clerk.shared)
@@ -35,16 +67,13 @@ struct ContentView: View {
                                         .environment(Clerk.shared)
                                 case .designSystem:
                                     DesignSystemTestView()
-                                case .propertyList:
-                                    PropertyListView()
-                                case .createListing:
-                                    CreateListingView()
-                                case .listingPreview(let listing):
-                                    ListingPreviewView(listing: listing)
-                                case .landlordProfile:
-                                    LandlordProfileView()
+                                default:
+                                    EmptyView()
                                 }
                             }
+                    }
+                    .onAppear {
+                        router.popToRoot()
                     }
                 }
             } else {
@@ -59,14 +88,8 @@ struct ContentView: View {
                                     .environment(Clerk.shared)
                             case .designSystem:
                                 DesignSystemTestView()
-                            case .propertyList:
-                                PropertyListView()
-                            case .createListing:
-                                CreateListingView()
-                            case .listingPreview(let listing):
-                                ListingPreviewView(listing: listing)
-                            case .landlordProfile:
-                                LandlordProfileView()
+                            default:
+                                EmptyView()
                             }
                         }
                 }
@@ -74,7 +97,14 @@ struct ContentView: View {
         }
         .environment(router)
         .prefetchClerkImages()
-        .sheet(item: $router.presentedSheet) { modal in
+        .sheet(item: $router.presentedSheet, onDismiss: {
+            // after sign-in sheet closes, load profile if needed
+            if clerk.user != nil && !session.isLoaded {
+                Task {
+                    await session.load(clerk: clerk)
+                }
+            }
+        }) { modal in
             switch modal {
             case .signIn:
                 NavigationStack {
@@ -100,15 +130,24 @@ struct ContentView: View {
             }
         }
         .onChange(of: clerk.user?.id) { oldId, newId in
-            router.popToRoot()
-            router.dismissModal()
+            print("[ContentView] clerk.user changed: \(oldId ?? "nil") → \(newId ?? "nil")")
             if newId == nil {
-                session.clear()
-            } else if oldId == nil && !session.isLoaded {
-                Task { await session.load(clerk: clerk) }
+                // Debounce: wait briefly in case Clerk is re-establishing the session
+                Task {
+                    try? await Task.sleep(for: .seconds(0.5))
+                    if clerk.user == nil {
+                        router.popToRoot()
+                        router.dismissModal()
+                        session.clear()
+                        loadTimedOut = false
+                    }
+                }
+            } else if oldId == nil && newId != nil {
+                print("[ContentView] sign-in detected, dismissing sheet")
+                router.dismissModal()
             }
         }
-        .task {
+        .task(id: clerk.user?.id) {
             if clerk.user != nil && !session.isLoaded {
                 await session.load(clerk: clerk)
             }

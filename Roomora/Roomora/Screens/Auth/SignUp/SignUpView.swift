@@ -97,12 +97,9 @@ struct SignUpView: View {
 
                         // phone number (landlord only)
                         if vm.role == .landlord {
-                            AppTextField(
-                                icon: "phone",
+                            PhoneField(
                                 label: "PHONE NUMBER",
-                                placeholder: "+1 (555) 000-0000",
-                                text: $vm.phone,
-                                keyboardType: .phonePad
+                                phone: $vm.phone
                             )
                             .transition(.move(edge: .top).combined(with: .opacity))
 
@@ -171,10 +168,10 @@ struct SignUpView: View {
                 .padding(.horizontal, AppSpacing.lg)
                 .padding(.top, AppSpacing.md)
             }
+            .scrollDismissesKeyboard(.interactively)
         }
         .background(.white)
         .tint(Color(.neutral, 900))
-        .dismissKeyboardOnTap()
     }
 }
 

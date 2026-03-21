@@ -1,8 +1,15 @@
 import SwiftUI
 import PhotosUI
 
-struct OnboardingStep1View: View {
-    @Bindable var vm: OnboardingViewModel
+struct BuildYourProfileView: View {
+    @Bindable var vm: BuildYourProfileViewModel
+    var role: String = "student"
+
+    private var isStudent: Bool { role == "student" }
+
+    private var bioHint: AttributedString {
+        try! AttributedString(markdown: "Add at least **5 characters** to continue.")
+    }
 
     var body: some View {
         ScrollView {
@@ -15,7 +22,9 @@ struct OnboardingStep1View: View {
                     Text("profile")
                         .font(.h1(.bold))
                         .foregroundStyle(Color(.purple, 500))
-                    Text("A great profile gets you 3× more matches.")
+                    Text(isStudent
+                         ? "A great profile gets you 3× more matches."
+                         : "Help tenants know who they're renting from.")
                         .font(.body14())
                         .foregroundStyle(Color(.neutral, 800))
                         .padding(.top, AppSpacing.xxs)
@@ -65,97 +74,95 @@ struct OnboardingStep1View: View {
                         Text("Profile photo")
                             .font(.body16(.semiBold))
                             .foregroundStyle(Color(.neutral, 900))
-                        Text("A clear photo helps landlords and roommates feel confident about you.")
+                        Text(isStudent
+                             ? "A clear photo helps landlords and roommates feel confident about you."
+                             : "A clear photo helps tenants feel confident about renting from you.")
                             .font(.body12())
                             .foregroundStyle(Color(.neutral, 800))
                     }
                 }
                 .onChange(of: vm.photoPickerItem) {
                     Task {
-                        if let data = try? await vm.photoPickerItem?.loadTransferable(type: Data.self),
-                           let uiImage = UIImage(data: data) {
-                            vm.profilePhoto = Image(uiImage: uiImage)
+                        if let data = try? await vm.photoPickerItem?.loadTransferable(type: Data.self) {
+                            vm.savePhoto(data: data)
                         }
                     }
                 }
 
-                // university
-                VStack(alignment: .leading, spacing: AppSpacing.xs) {
-                    Text("UNIVERSITY")
-                        .font(.body10(.semiBold))
-                        .foregroundStyle(Color(.neutral, 700))
+                if isStudent {
+                    // university
+                    AppTextField(
+                        icon: "building.columns",
+                        label: "UNIVERSITY",
+                        placeholder: "e.g. Tec de Monterrey",
+                        text: $vm.university
+                    )
 
-                    TextField("e.g. Tec de Monterrey", text: $vm.university)
-                        .font(.body14())
-                        .foregroundStyle(Color(.neutral, 900))
-                        .padding(AppSpacing.md)
-                        .background(
-                            RoundedRectangle(cornerRadius: 12)
-                                .stroke(Color(.neutral, 300), lineWidth: 1)
-                        )
+                    // major
+                    VStack(alignment: .leading, spacing: AppSpacing.xs) {
+                        Text("MAJOR")
+                            .font(.body10(.semiBold))
+                            .foregroundStyle(Color(.neutral, 700))
+
+                        Menu {
+                            ForEach(BuildYourProfileViewModel.majors, id: \.self) { major in
+                                Button(major) { vm.major = major }
+                            }
+                        } label: {
+                            HStack(spacing: AppSpacing.sm) {
+                                Image(systemName: "book")
+                                    .foregroundStyle(Color(.neutral, 500))
+                                    .font(.body16())
+                                Text(vm.major ?? "Select your major")
+                                    .font(.body16())
+                                    .foregroundStyle(vm.major == nil ? Color(.neutral, 500) : Color(.neutral, 900))
+                                Spacer()
+                                Image(systemName: "chevron.down")
+                                    .font(.system(size: 12))
+                                    .foregroundStyle(Color(.neutral, 500))
+                            }
+                            .padding(AppSpacing.md)
+                            .background(
+                                RoundedRectangle(cornerRadius: 12)
+                                    .stroke(Color(.neutral, 500), lineWidth: 1)
+                            )
+                        }
+                        .buttonStyle(.plain)
+                    }
                 }
 
-                // birth year & graduation year
+                // birth year (+ graduation year for students only)
                 HStack(spacing: AppSpacing.md) {
-                    VStack(alignment: .leading, spacing: AppSpacing.xs) {
-                        Text("BIRTH YEAR")
-                            .font(.body10(.semiBold))
-                            .foregroundStyle(Color(.neutral, 700))
+                    yearPicker(
+                        icon: "calendar",
+                        label: "BIRTH YEAR",
+                        placeholder: "Select",
+                        years: BuildYourProfileViewModel.birthYears,
+                        selection: $vm.birthYear
+                    )
 
-                        TextField("e.g. 2003", text: $vm.birthYear)
-                            .font(.body14())
-                            .foregroundStyle(Color(.neutral, 900))
-                            .keyboardType(.numberPad)
-                            .padding(AppSpacing.md)
-                            .background(
-                                RoundedRectangle(cornerRadius: 12)
-                                    .stroke(Color(.neutral, 300), lineWidth: 1)
-                            )
-                    }
-
-                    VStack(alignment: .leading, spacing: AppSpacing.xs) {
-                        Text("GRADUATION YEAR")
-                            .font(.body10(.semiBold))
-                            .foregroundStyle(Color(.neutral, 700))
-
-                        TextField("e.g. 2027", text: $vm.graduationYear)
-                            .font(.body14())
-                            .foregroundStyle(Color(.neutral, 900))
-                            .keyboardType(.numberPad)
-                            .padding(AppSpacing.md)
-                            .background(
-                                RoundedRectangle(cornerRadius: 12)
-                                    .stroke(Color(.neutral, 300), lineWidth: 1)
-                            )
+                    if isStudent {
+                        yearPicker(
+                            icon: "graduationcap",
+                            label: "GRAD YEAR",
+                            placeholder: "Select",
+                            years: BuildYourProfileViewModel.gradYears,
+                            selection: $vm.graduationYear
+                        )
                     }
                 }
 
                 // bio
-                VStack(alignment: .leading, spacing: AppSpacing.xs) {
-                    Text("BIO")
-                        .font(.body10(.semiBold))
-                        .foregroundStyle(Color(.neutral, 700))
+                AppTextField(
+                    icon: "",
+                    label: "BIO",
+                    placeholder: "Tell us about yourself, your interests, what you're studying...",
+                    text: $vm.bio,
+                    isMultiline: true
+                )
 
-                    TextEditor(text: $vm.bio)
-                        .font(.body14())
-                        .foregroundStyle(Color(.neutral, 900))
-                        .frame(minHeight: 120)
-                        .scrollContentBackground(.hidden)
-                        .padding(AppSpacing.md)
-                        .background(
-                            RoundedRectangle(cornerRadius: 12)
-                                .stroke(Color(.neutral, 300), lineWidth: 1)
-                        )
-                        .overlay(alignment: .topLeading) {
-                            if vm.bio.isEmpty {
-                                Text("Tell us about yourself, your interests, what you're studying...")
-                                    .font(.body14())
-                                    .foregroundStyle(Color(.neutral, 500))
-                                    .padding(AppSpacing.md)
-                                    .padding(.top, 8)
-                                    .allowsHitTesting(false)
-                            }
-                        }
+                if vm.bio.count < 5 && !vm.bio.isEmpty {
+                    HintBanner(message: bioHint)
                 }
 
                 // hobbies
@@ -171,7 +178,7 @@ struct OnboardingStep1View: View {
                     }
 
                     FlowLayout(spacing: AppSpacing.xs) {
-                        ForEach(OnboardingViewModel.hobbies, id: \.self) { hobby in
+                        ForEach(BuildYourProfileViewModel.hobbies, id: \.self) { hobby in
                             let selected = vm.selectedHobbies.contains(hobby)
                             Button {
                                 UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
@@ -188,7 +195,7 @@ struct OnboardingStep1View: View {
                                     )
                                     .overlay(
                                         RoundedRectangle(cornerRadius: 20)
-                                            .stroke(selected ? Color(.purple, 300) : Color(.neutral, 300), lineWidth: 1)
+                                            .stroke(selected ? Color(.purple, 500) : Color(.neutral, 500), lineWidth: 1)
                                     )
                             }
                         }
@@ -200,50 +207,43 @@ struct OnboardingStep1View: View {
             .padding(.bottom, AppSpacing.xl)
         }
     }
-}
 
-struct FlowLayout: Layout {
-    var spacing: CGFloat = 8
+    private func yearPicker(
+        icon: String,
+        label: String,
+        placeholder: String,
+        years: [Int],
+        selection: Binding<Int?>
+    ) -> some View {
+        VStack(alignment: .leading, spacing: AppSpacing.xs) {
+            Text(label)
+                .font(.body10(.semiBold))
+                .foregroundStyle(Color(.neutral, 700))
 
-    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
-        let rows = computeRows(proposal: proposal, subviews: subviews)
-        var height: CGFloat = 0
-        for (i, row) in rows.enumerated() {
-            let rowHeight = row.map { $0.sizeThatFits(.unspecified).height }.max() ?? 0
-            height += rowHeight
-            if i < rows.count - 1 { height += spacing }
-        }
-        return CGSize(width: proposal.width ?? 0, height: height)
-    }
-
-    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
-        let rows = computeRows(proposal: proposal, subviews: subviews)
-        var y = bounds.minY
-        for row in rows {
-            var x = bounds.minX
-            let rowHeight = row.map { $0.sizeThatFits(.unspecified).height }.max() ?? 0
-            for view in row {
-                let size = view.sizeThatFits(.unspecified)
-                view.place(at: CGPoint(x: x, y: y), proposal: ProposedViewSize(size))
-                x += size.width + spacing
+            Menu {
+                ForEach(years.reversed(), id: \.self) { year in
+                    Button(String(year)) { selection.wrappedValue = year }
+                }
+            } label: {
+                HStack(spacing: AppSpacing.sm) {
+                    Image(systemName: icon)
+                        .foregroundStyle(Color(.neutral, 500))
+                        .font(.body16())
+                    Text(selection.wrappedValue.map(String.init) ?? placeholder)
+                        .font(.body16())
+                        .foregroundStyle(selection.wrappedValue == nil ? Color(.neutral, 500) : Color(.neutral, 900))
+                    Spacer()
+                    Image(systemName: "chevron.down")
+                        .font(.system(size: 12))
+                        .foregroundStyle(Color(.neutral, 500))
+                }
+                .padding(AppSpacing.md)
+                .background(
+                    RoundedRectangle(cornerRadius: 12)
+                        .stroke(Color(.neutral, 500), lineWidth: 1)
+                )
             }
-            y += rowHeight + spacing
+            .buttonStyle(.plain)
         }
-    }
-
-    private func computeRows(proposal: ProposedViewSize, subviews: Subviews) -> [[LayoutSubviews.Element]] {
-        let maxWidth = proposal.width ?? .infinity
-        var rows: [[LayoutSubviews.Element]] = [[]]
-        var currentWidth: CGFloat = 0
-        for view in subviews {
-            let size = view.sizeThatFits(.unspecified)
-            if currentWidth + size.width > maxWidth && !rows[rows.count - 1].isEmpty {
-                rows.append([])
-                currentWidth = 0
-            }
-            rows[rows.count - 1].append(view)
-            currentWidth += size.width + spacing
-        }
-        return rows
     }
 }
