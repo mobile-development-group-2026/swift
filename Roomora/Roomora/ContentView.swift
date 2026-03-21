@@ -67,6 +67,8 @@ struct ContentView: View {
                                         .environment(Clerk.shared)
                                 case .designSystem:
                                     DesignSystemTestView()
+                                default:
+                                    EmptyView()
                                 }
                             }
                     }
@@ -86,12 +88,13 @@ struct ContentView: View {
                                     .environment(Clerk.shared)
                             case .designSystem:
                                 DesignSystemTestView()
+                            default:
+                                EmptyView()
                             }
                         }
                 }
             }
         }
-        // available to each child in the Group
         .environment(router)
         .prefetchClerkImages()
         .sheet(item: $router.presentedSheet, onDismiss: {

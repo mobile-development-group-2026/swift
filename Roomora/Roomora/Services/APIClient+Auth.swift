@@ -63,7 +63,7 @@ struct LandlordProfileResponse: Codable {
     let hobbies: [String]?
 }
 
-struct ListingResponse: Codable, Identifiable {
+struct ListingResponse: Codable, Identifiable, Hashable {
     let id: String
     let userId: String?
     let listingType: String?

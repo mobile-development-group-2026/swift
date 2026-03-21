@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//Users/renegade/MyRepos/moviles-2026/swift/Roomora/**)",
+      "Bash(xcodebuild -scheme Roomora -destination 'platform=iOS Simulator,name=iPhone 16' build)",
+      "Bash(xcodebuild -scheme Roomora -destination 'platform=iOS Simulator,name=iPhone 17 Pro' build)"
+    ]
+  }
+}
