@@ -19,13 +19,47 @@ class OnboardingViewModel {
     /// true when user picked "I need a place" (needPlace)
     var needsPlace: Bool { situation.situation == .needPlace }
 
-    func nextStep(clerk: Clerk) async {
+    func nextStep(clerk: Clerk, role: String) async {
         if step == 0 {
-            await saveStudentProfile(clerk: clerk)
+            if role == "landlord" {
+                await saveLandlordProfile(clerk: clerk)
+            } else {
+                await saveStudentProfile(clerk: clerk)
+            }
         }
         if step < totalSteps - 1 {
             step += 1
         }
+    }
+
+    private func saveLandlordProfile(clerk: Clerk) async {
+        isLoading = true
+        errorMessage = nil
+        var fields: [String: Any] = [:]
+
+        let bp = buildProfile
+        if let year = bp.birthYear { fields["birth_year"] = year }
+        if !bp.bio.isEmpty { fields["bio"] = bp.bio }
+        if !bp.selectedHobbies.isEmpty {
+            let cleaned = bp.selectedHobbies.map { hobby in
+                hobby.drop(while: { !$0.isASCII || $0.isWhitespace })
+                    .trimmingCharacters(in: .whitespaces)
+            }.sorted()
+            fields["hobbies"] = cleaned
+        }
+
+        guard !fields.isEmpty else {
+            isLoading = false
+            return
+        }
+
+        do {
+            _ = try await APIClient.shared.updateLandlordProfile(clerk: clerk, fields: fields)
+        } catch {
+            print("saveLandlordProfile failed: \(error)")
+            errorMessage = error.localizedDescription
+        }
+        isLoading = false
     }
 
     private func saveStudentProfile(clerk: Clerk) async {

@@ -65,7 +65,7 @@ struct OnboardingView: View {
             // step content
             Group {
                 switch vm.step {
-                case 0: BuildYourProfileView(vm: vm.buildProfile)
+                case 0: BuildYourProfileView(vm: vm.buildProfile, role: session.role ?? "student")
                 case 1: RoommateSituationView(vm: vm.situation)
                 default:
                     if vm.needsPlace {
@@ -96,7 +96,7 @@ struct OnboardingView: View {
                     if vm.isLastStep {
                         await vm.complete(clerk: clerk)
                     } else {
-                        await vm.nextStep(clerk: clerk)
+                        await vm.nextStep(clerk: clerk, role: session.role ?? "student")
                     }
                 }
             }
