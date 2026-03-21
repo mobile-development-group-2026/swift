@@ -43,11 +43,10 @@ final class ListingsMapViewModel: ObservableObject {
             var items: [ListingMapItem] = []
 
             for listing in listings {
-                guard let id = listing.id else { continue }
                 guard let coordinate = await GeocodingService.shared.coordinate(for: listing) else { continue }
 
                 let item = ListingMapItem(
-                    id: id,
+                    id: listing.id,
                     title: listing.title,
                     address: listing.address,
                     city: listing.city,

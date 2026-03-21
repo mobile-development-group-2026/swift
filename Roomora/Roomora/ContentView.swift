@@ -67,14 +67,8 @@ struct ContentView: View {
                                         .environment(Clerk.shared)
                                 case .designSystem:
                                     DesignSystemTestView()
-                                case .propertyList:
-                                    PropertyListView()
-                                case .createListing:
-                                    CreateListingView()
-                                case .listingPreview(let listing):
-                                    ListingPreviewView(listing: listing)
-                                case .landlordProfile:
-                                    LandlordProfileView()
+                                default:
+                                    EmptyView()
                                 }
                             }
                     }
@@ -94,14 +88,8 @@ struct ContentView: View {
                                     .environment(Clerk.shared)
                             case .designSystem:
                                 DesignSystemTestView()
-                            case .propertyList:
-                                PropertyListView()
-                            case .createListing:
-                                CreateListingView()
-                            case .listingPreview(let listing):
-                                ListingPreviewView(listing: listing)
-                            case .landlordProfile:
-                                LandlordProfileView()
+                            default:
+                                EmptyView()
                             }
                         }
                 }
