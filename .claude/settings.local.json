@@ -1,7 +1,0 @@
-{
-  "permissions": {
-    "allow": [
-      "Bash(grep -n \"public func signIn\\\\|func signIn\" /Users/renegade/Library/Developer/Xcode/DerivedData/Roomora*/SourcePackages/checkouts/clerk-ios/Sources/ClerkKit/Core/Auth.swift | head -10)"
-    ]
-  }
-}
