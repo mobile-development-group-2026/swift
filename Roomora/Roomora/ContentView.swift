@@ -99,7 +99,6 @@ struct ContentView: View {
                 await session.load(clerk: clerk)
             }
         }
-    }
 
     @ViewBuilder
     private func popupContent(for modal: AppModal) -> some View {
