@@ -5,10 +5,10 @@ struct DesignSystemTestView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: AppSpacing.xxxl) {
                 Section("Typography") {
-                    Text("Heading 1").font(.h1())
-                    Text("Heading 2").font(.h2())
-                    Text("Heading 3").font(.h3())
-                    Text("Heading 4").font(.h4())
+                    Text("Heading 1").font(.h1)
+                    Text("Heading 2").font(.h2)
+                    Text("Heading 3").font(.h3)
+                    Text("Heading 4").font(.h4)
                     Text("Body 18").font(.body18())
                     Text("Body 16").font(.body16())
                     Text("Body 14").font(.body14())
@@ -86,4 +86,3 @@ struct DesignSystemTestView: View {
         }
     }
 }
-

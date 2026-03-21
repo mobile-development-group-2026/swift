@@ -1,20 +1,19 @@
 import SwiftUI
 
-enum ButtonVariants {
+enum ButtomVariants {
     case primary
     case secondary
 }
 
 struct AppButton: View {
     let title: String
-    var variant: ButtonVariants = .primary
+    var variant: ButtomVariants = .primary
     let action: () -> Void
 
-    // visual components of button
     var body: some View {
         Button(action: action) {
             Text(title)
-                .font(.body18(.semiBold))
+                .font(.h4)
                 .foregroundStyle(.white)
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 16)
