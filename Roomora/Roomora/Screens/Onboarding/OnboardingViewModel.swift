@@ -78,6 +78,13 @@ class OnboardingViewModel {
         isLoading = true
         errorMessage = nil
         do {
+            // Save lifestyle/roommate preferences
+            await saveLifestyleProfile(clerk: clerk)
+            if errorMessage != nil {
+                isLoading = false
+                return
+            }
+
             let profile = try await APIClient.shared.updateProfile(
                 clerk: clerk,
                 fields: ["onboarded": true]
@@ -88,6 +95,40 @@ class OnboardingViewModel {
             errorMessage = error.localizedDescription
         }
         isLoading = false
+    }
+
+    private func saveLifestyleProfile(clerk: Clerk) async {
+        var fields: [String: Any] = [:]
+        let pref = preferences
+
+        fields["spots_available"] = pref.spotsAvailable
+        if let month = pref.moveInMonth { fields["move_in_month"] = month }
+        if let gender = pref.genderPreference { fields["gender_preference"] = gender }
+        if let sleep = pref.sleepSchedule { fields["sleep_schedule"] = sleep }
+        if let clean = pref.cleanliness { fields["cleanliness_level"] = clean }
+
+        if !pref.selectedLifestyle.isEmpty {
+            let cleaned = pref.selectedLifestyle.map { item in
+                item.drop(while: { !$0.isASCII || $0.isWhitespace })
+                    .trimmingCharacters(in: .whitespaces)
+            }.sorted()
+            fields["lifestyle"] = cleaned
+        }
+
+        if !pref.selectedRequirements.isEmpty {
+            let cleaned = pref.selectedRequirements.map { item in
+                item.drop(while: { !$0.isASCII || $0.isWhitespace })
+                    .trimmingCharacters(in: .whitespaces)
+            }.sorted()
+            fields["requirements"] = cleaned
+        }
+
+        do {
+            _ = try await APIClient.shared.updateLifestyleProfile(clerk: clerk, fields: fields)
+        } catch {
+            print("saveLifestyleProfile failed: \(error)")
+            errorMessage = error.localizedDescription
+        }
     }
 
     func finishOnboarding(session: UserSession) {

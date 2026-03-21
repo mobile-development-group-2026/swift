@@ -47,16 +47,13 @@ struct StudentProfileResponse: Codable {
 
 struct LifestyleProfileResponse: Codable {
     let id: String
-    let noiseLevel: Int?
+    let spotsAvailable: Int?
+    let moveInMonth: String?
+    let genderPreference: Int?
+    let sleepSchedule: Int?
     let cleanlinessLevel: Int?
-    let sleepSchedule: String?
-    let smokingAllowed: Bool?
-    let petsAllowed: Bool?
-    let partiesAllowed: Bool?
-    let guestFrequency: Int?
-    let lifestyleTags: String?
-    let moveInDate: String?
-    let maxBudget: String?
+    let lifestyle: [String]?
+    let requirements: [String]?
 }
 
 struct SyncResponse: Codable {

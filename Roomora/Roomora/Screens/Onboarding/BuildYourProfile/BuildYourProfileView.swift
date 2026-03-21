@@ -119,6 +119,7 @@ struct BuildYourProfileView: View {
                                 .stroke(Color(.neutral, 500), lineWidth: 1)
                         )
                     }
+                    .buttonStyle(.plain)
                 }
 
                 // birth year & graduation year
@@ -231,6 +232,7 @@ struct BuildYourProfileView: View {
                         .stroke(Color(.neutral, 500), lineWidth: 1)
                 )
             }
+            .buttonStyle(.plain)
         }
     }
 }
