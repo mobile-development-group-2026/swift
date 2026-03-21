@@ -4,4 +4,7 @@ enum AppRoute: Hashable {
     case home
     case signUp
     case designSystem
+    case createListing
+    case listingPreview(Listing)
+    case landlordProfile
 }
