@@ -66,7 +66,12 @@ struct OnboardingView: View {
             Group {
                 switch vm.step {
                 case 0: BuildYourProfileView(vm: vm.buildProfile, role: session.role ?? "student")
-                case 1: RoommateSituationView(vm: vm.situation)
+                case 1:
+                    if session.role == "landlord" {
+                        NewListingView(vm: vm.newListing)
+                    } else {
+                        RoommateSituationView(vm: vm.situation)
+                    }
                 default:
                     if vm.needsPlace {
                         ListingPreferencesView(vm: vm.listingPrefs)
@@ -106,6 +111,7 @@ struct OnboardingView: View {
             .padding(.vertical, AppSpacing.lg)
         }
         .background(.white)
+        .onAppear { vm.isLandlord = session.role == "landlord" }
         }
     }
 }

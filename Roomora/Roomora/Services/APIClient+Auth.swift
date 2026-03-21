@@ -63,6 +63,20 @@ struct LandlordProfileResponse: Codable {
     let hobbies: [String]?
 }
 
+struct CreateListingResponse: Codable {
+    let id: String
+    let title: String
+    let rent: String
+    let securityDeposit: String?
+    let propertyType: String?
+    let availableDate: String?
+    let leaseTermMonths: Int?
+    let description: String?
+    let amenities: [String]?
+    let rules: [String]?
+    let status: String
+}
+
 struct ListingProfileResponse: Codable {
     let id: String
     let maxBudget: Int?

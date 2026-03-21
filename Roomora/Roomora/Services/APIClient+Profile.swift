@@ -23,6 +23,11 @@ extension APIClient {
         return try decodeData(ListingProfileResponse.self, from: data)
     }
 
+    func createListing(clerk: Clerk, fields: [String: Any]) async throws -> CreateListingResponse {
+        let data = try await post(path: "/listings", body: ["listing": fields], clerk: clerk)
+        return try decodeData(CreateListingResponse.self, from: data)
+    }
+
     func updateLandlordProfile(clerk: Clerk, fields: [String: Any]) async throws -> LandlordProfileResponse {
         let data = try await patch(path: "/profile/landlord", body: ["landlord_profile": fields], clerk: clerk)
         return try decodeData(LandlordProfileResponse.self, from: data)

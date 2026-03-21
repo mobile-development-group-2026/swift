@@ -4,7 +4,7 @@ import ClerkKit
 @Observable
 class OnboardingViewModel {
     var step = 0
-    let totalSteps = 3
+    var totalSteps: Int { isLandlord ? 2 : 3 }
     var isLoading = false
     var errorMessage: String?
     var showCelebration = false
@@ -15,6 +15,7 @@ class OnboardingViewModel {
     var situation = RoommateSituationViewModel()
     var preferences = RoommatePreferencesViewModel()
     var listingPrefs = ListingPreferencesViewModel()
+    var newListing = NewListingViewModel()
 
     /// true when user picked "I need a place" (needPlace)
     var needsPlace: Bool { situation.situation == .needPlace }
@@ -107,17 +108,22 @@ class OnboardingViewModel {
     var canContinue: Bool {
         switch step {
         case 0: return buildProfile.canContinue
-        case 1: return situation.canContinue
+        case 1: return isLandlord ? newListing.canContinue : situation.canContinue
         default: return true
         }
     }
+
+    /// Set by the view so the VM can branch on role.
+    var isLandlord = false
 
     func complete(clerk: Clerk) async {
         isLoading = true
         errorMessage = nil
         do {
-            // Save step 3 data based on situation
-            if needsPlace {
+            // Save step 3 data based on role & situation
+            if isLandlord {
+                await saveNewListing(clerk: clerk)
+            } else if needsPlace {
                 await saveListingProfile(clerk: clerk)
             } else {
                 await saveLifestyleProfile(clerk: clerk)
@@ -199,6 +205,41 @@ class OnboardingViewModel {
             _ = try await APIClient.shared.updateListingProfile(clerk: clerk, fields: fields)
         } catch {
             print("saveListingProfile failed: \(error)")
+            errorMessage = error.localizedDescription
+        }
+    }
+
+    private func saveNewListing(clerk: Clerk) async {
+        var fields: [String: Any] = [:]
+        let nl = newListing
+
+        fields["listing_type"] = "property"
+        fields["title"] = nl.title
+        if !nl.description.isEmpty { fields["description"] = nl.description }
+        if let rent = Int(nl.monthlyRent) { fields["rent"] = rent }
+        if let deposit = Int(nl.securityDeposit), deposit > 0 { fields["security_deposit"] = deposit }
+        if let type = nl.propertyType { fields["property_type"] = type }
+
+        // Parse lease length: "12 months" → 12
+        if let months = Int(nl.leaseLength.components(separatedBy: " ").first ?? "") {
+            fields["lease_term_months"] = months
+        }
+
+        let formatter = ISO8601DateFormatter()
+        formatter.formatOptions = [.withFullDate]
+        fields["available_date"] = formatter.string(from: nl.availableFrom)
+
+        if !nl.selectedAmenities.isEmpty {
+            fields["amenities"] = Array(nl.selectedAmenities.sorted())
+        }
+        if !nl.selectedRules.isEmpty {
+            fields["rules"] = Array(nl.selectedRules.sorted())
+        }
+
+        do {
+            _ = try await APIClient.shared.createListing(clerk: clerk, fields: fields)
+        } catch {
+            print("saveNewListing failed: \(error)")
             errorMessage = error.localizedDescription
         }
     }
