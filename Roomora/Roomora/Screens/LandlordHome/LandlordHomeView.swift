@@ -1,10 +1,14 @@
 import SwiftUI
+import ClerkKit
 
 struct LandlordHomeView: View {
+    @Environment(Clerk.self) private var clerk
     @Environment(UserSession.self) private var session
 
+    @State private var vm = LandlordHomeViewModel()
     @State private var selectedTab: LandlordTab = .listings
     @State private var activeNavTab: LandlordNavTab = .dashboard
+    @State private var selectedListing: ListingResponse?
 
     enum LandlordTab: String, CaseIterable {
         case listings = "My Listings"
@@ -50,6 +54,12 @@ struct LandlordHomeView: View {
             bottomNav
         }
         .background(Color(.neutral, 100))
+        .task {
+            await vm.loadListings(clerk: clerk)
+        }
+        .sheet(item: $selectedListing) { listing in
+            ListingDetailSheet(listing: listing)
+        }
     }
 
     // MARK: - Top Bar
@@ -79,27 +89,32 @@ struct LandlordHomeView: View {
 
     private var statsRow: some View {
         HStack(spacing: AppSpacing.sm) {
-            ForEach(MockLandlordData.stats, id: \.label) { stat in
-                VStack(spacing: AppSpacing.xs) {
-                    Image(systemName: stat.icon)
-                        .font(.system(size: 16))
-                        .foregroundStyle(Color(.purple, 500))
-                    Text(stat.value)
-                        .font(.body18(.bold))
-                        .foregroundStyle(Color(.neutral, 900))
-                    Text(stat.label)
-                        .font(.body10())
-                        .foregroundStyle(Color(.neutral, 500))
-                }
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, AppSpacing.md)
-                .background(
-                    RoundedRectangle(cornerRadius: 12)
-                        .fill(.white)
-                )
-            }
+            statCard(icon: "eye.fill", value: "—", label: "Views")
+            statCard(icon: "doc.text.fill", value: "—", label: "Applications")
+            statCard(icon: "house.fill", value: "\(vm.listings.count)", label: "Listings")
+            statCard(icon: "star.fill", value: "—", label: "Rating")
         }
         .padding(.horizontal, AppSpacing.lg)
+    }
+
+    private func statCard(icon: String, value: String, label: String) -> some View {
+        VStack(spacing: AppSpacing.xs) {
+            Image(systemName: icon)
+                .font(.system(size: 16))
+                .foregroundStyle(Color(.purple, 500))
+            Text(value)
+                .font(.body18(.bold))
+                .foregroundStyle(Color(.neutral, 900))
+            Text(label)
+                .font(.body10())
+                .foregroundStyle(Color(.neutral, 500))
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, AppSpacing.md)
+        .background(
+            RoundedRectangle(cornerRadius: 12)
+                .fill(.white)
+        )
     }
 
     // MARK: - Tab Picker
@@ -156,15 +171,45 @@ struct LandlordHomeView: View {
             .buttonStyle(.plain)
             .padding(.horizontal, AppSpacing.lg)
 
-            // listing cards
-            ForEach(MockLandlordData.listings) { listing in
-                listingCard(listing)
+            if vm.isLoading {
+                ProgressView()
+                    .frame(maxWidth: .infinity)
+                    .padding(.top, AppSpacing.xl)
+            } else if vm.listings.isEmpty {
+                VStack(spacing: AppSpacing.sm) {
+                    Image(systemName: "house")
+                        .font(.system(size: 40))
+                        .foregroundStyle(Color(.neutral, 300))
+                    Text("No listings yet")
+                        .font(.body16(.semiBold))
+                        .foregroundStyle(Color(.neutral, 500))
+                    Text("Create your first listing to start receiving applications.")
+                        .font(.body14())
+                        .foregroundStyle(Color(.neutral, 400))
+                        .multilineTextAlignment(.center)
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, AppSpacing.xl)
+                .padding(.horizontal, AppSpacing.lg)
+            } else {
+                ForEach(vm.listings, id: \.id) { listing in
+                    Button {
+                        selectedListing = listing
+                    } label: {
+                        listingCard(listing)
+                    }
+                    .buttonStyle(.plain)
+                }
             }
         }
     }
 
-    private func listingCard(_ listing: LandlordListing) -> some View {
-        HStack(spacing: AppSpacing.md) {
+    private func listingCard(_ listing: ListingResponse) -> some View {
+        let rentValue = Int(Double(listing.rent) ?? 0)
+        let isActive = listing.status == "active"
+        let icon = iconForPropertyType(listing.propertyType)
+
+        return HStack(spacing: AppSpacing.md) {
             // thumbnail
             RoundedRectangle(cornerRadius: 12)
                 .fill(
@@ -176,64 +221,45 @@ struct LandlordHomeView: View {
                 )
                 .frame(width: 80, height: 80)
                 .overlay(
-                    Image(systemName: listing.imageSystemName)
+                    Image(systemName: icon)
                         .font(.system(size: 24))
                         .foregroundStyle(Color(.purple, 400))
                 )
 
             VStack(alignment: .leading, spacing: AppSpacing.xs) {
                 // status badge
-                HStack(spacing: AppSpacing.xs) {
-                    Text(listing.status.rawValue)
-                        .font(.body10(.bold))
-                        .foregroundStyle(listing.status == .active ? Color(.green, 700) : Color(.neutral, 600))
-                        .padding(.horizontal, AppSpacing.xs)
-                        .padding(.vertical, 2)
-                        .background(
-                            Capsule()
-                                .fill(listing.status == .active ? Color(.green, 100) : Color(.neutral, 200))
-                        )
-                }
+                Text(listing.status.capitalized)
+                    .font(.body10(.bold))
+                    .foregroundStyle(isActive ? Color(.green, 700) : Color(.neutral, 600))
+                    .padding(.horizontal, AppSpacing.xs)
+                    .padding(.vertical, 2)
+                    .background(
+                        Capsule()
+                            .fill(isActive ? Color(.green, 100) : Color(.neutral, 200))
+                    )
 
                 Text(listing.title)
                     .font(.body14(.semiBold))
                     .foregroundStyle(Color(.neutral, 900))
                     .lineLimit(1)
 
-                Text(listing.type)
-                    .font(.body12())
-                    .foregroundStyle(Color(.neutral, 500))
+                if let type = listing.propertyType {
+                    Text(type)
+                        .font(.body12())
+                        .foregroundStyle(Color(.neutral, 500))
+                }
 
                 HStack(alignment: .firstTextBaseline, spacing: 2) {
-                    Text("$\(listing.price)")
+                    Text("$\(rentValue)")
                         .font(.body16(.bold))
                         .foregroundStyle(Color(.neutral, 900))
-                    Text("/ \(listing.period)")
+                    Text("/ mo")
                         .font(.body10())
                         .foregroundStyle(Color(.neutral, 500))
                 }
             }
 
             Spacer()
-
-            // stats
-            VStack(alignment: .trailing, spacing: AppSpacing.xs) {
-                HStack(spacing: AppSpacing.xxs) {
-                    Image(systemName: "eye")
-                        .font(.system(size: 10))
-                    Text("\(listing.views)")
-                        .font(.body12())
-                }
-                .foregroundStyle(Color(.neutral, 500))
-
-                HStack(spacing: AppSpacing.xxs) {
-                    Image(systemName: "doc.text")
-                        .font(.system(size: 10))
-                    Text("\(listing.applications)")
-                        .font(.body12())
-                }
-                .foregroundStyle(Color(.purple, 500))
-            }
         }
         .padding(AppSpacing.md)
         .background(
@@ -242,6 +268,17 @@ struct LandlordHomeView: View {
         )
         .shadow(color: .black.opacity(0.04), radius: 8, y: 2)
         .padding(.horizontal, AppSpacing.lg)
+    }
+
+    private func iconForPropertyType(_ type: String?) -> String {
+        switch type {
+        case "Studio", "studio": return "building.2.fill"
+        case "1 bedroom", "apartment": return "building.fill"
+        case "2 bedrooms": return "building.fill"
+        case "3+ bedrooms", "house": return "house.lodge.fill"
+        case "Shared room", "room": return "person.2.fill"
+        default: return "house.fill"
+        }
     }
 
     // MARK: - Recent Applications

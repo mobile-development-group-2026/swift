@@ -65,9 +65,19 @@ struct OnboardingView: View {
             // step content
             Group {
                 switch vm.step {
-                case 0: BuildYourProfileView(vm: vm.buildProfile)
-                case 1: RoommateSituationView(vm: vm.situation)
-                default: RoommatePreferencesView(vm: vm.preferences, role: session.role ?? "student")
+                case 0: BuildYourProfileView(vm: vm.buildProfile, role: session.role ?? "student")
+                case 1:
+                    if session.role == "landlord" {
+                        NewListingView(vm: vm.newListing)
+                    } else {
+                        RoommateSituationView(vm: vm.situation)
+                    }
+                default:
+                    if vm.needsPlace {
+                        ListingPreferencesView(vm: vm.listingPrefs)
+                    } else {
+                        RoommatePreferencesView(vm: vm.preferences, role: session.role ?? "student")
+                    }
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -87,10 +97,12 @@ struct OnboardingView: View {
                     : "Continue  →",
                 variant: .primary
             ) {
-                if vm.isLastStep {
-                    Task { await vm.complete(clerk: clerk) }
-                } else {
-                    vm.nextStep()
+                Task {
+                    if vm.isLastStep {
+                        await vm.complete(clerk: clerk)
+                    } else {
+                        await vm.nextStep(clerk: clerk, role: session.role ?? "student")
+                    }
                 }
             }
             .disabled(!vm.canContinue)
@@ -99,6 +111,7 @@ struct OnboardingView: View {
             .padding(.vertical, AppSpacing.lg)
         }
         .background(.white)
+        .onAppear { vm.isLandlord = session.role == "landlord" }
         }
     }
 }

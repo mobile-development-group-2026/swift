@@ -84,11 +84,13 @@ struct RoommatePreferencesView: View {
 
             // gender preference
             PreferenceSection(icon: "person.crop.circle.fill", title: "GENDER PREFERENCE") {
-                let options = ["No preference", "Same as me", "Women only", "Men only"]
+                let options: [(label: String, value: Int)] = [
+                    ("No preference", 0), ("Same as me", 1), ("Women only", 2), ("Men only", 3)
+                ]
                 FlowLayout(spacing: AppSpacing.xs) {
-                    ForEach(options, id: \.self) { option in
-                        selectableChip(option, selected: vm.genderPreference == option) {
-                            vm.genderPreference = vm.genderPreference == option ? nil : option
+                    ForEach(options, id: \.value) { opt in
+                        selectableChip(opt.label, selected: vm.genderPreference == opt.value) {
+                            vm.genderPreference = vm.genderPreference == opt.value ? nil : opt.value
                         }
                     }
                 }
@@ -96,20 +98,20 @@ struct RoommatePreferencesView: View {
 
             // sleep schedule
             PreferenceSection(icon: "moon.stars.fill", title: "SLEEP SCHEDULE") {
-                let options: [(emoji: String, label: String, sub: String)] = [
-                    ("🌅", "Early bird", "Up by 7am"),
-                    ("🌙", "Night owl", "Up past midnight"),
-                    ("🎲", "No preference", "Either works"),
+                let options: [(emoji: String, label: String, sub: String, value: Int)] = [
+                    ("🌅", "Early bird", "Up by 7am", 0),
+                    ("🌙", "Night owl", "Up past midnight", 1),
+                    ("🎲", "No preference", "Either works", 2),
                 ]
                 HStack(spacing: AppSpacing.sm) {
-                    ForEach(options, id: \.label) { opt in
+                    ForEach(options, id: \.value) { opt in
                         lifestyleCard(
                             emoji: opt.emoji,
                             title: opt.label,
                             subtitle: opt.sub,
-                            selected: vm.sleepSchedule == opt.label
+                            selected: vm.sleepSchedule == opt.value
                         ) {
-                            vm.sleepSchedule = vm.sleepSchedule == opt.label ? nil : opt.label
+                            vm.sleepSchedule = vm.sleepSchedule == opt.value ? nil : opt.value
                         }
                     }
                 }
@@ -117,20 +119,20 @@ struct RoommatePreferencesView: View {
 
             // cleanliness
             PreferenceSection(icon: "sparkles", title: "CLEANLINESS") {
-                let options: [(emoji: String, label: String, sub: String)] = [
-                    ("✨", "Very tidy", "Always clean"),
-                    ("🧹", "Moderate", "Clean enough"),
-                    ("😌", "Relaxed", "Lived-in feel"),
+                let options: [(emoji: String, label: String, sub: String, value: Int)] = [
+                    ("✨", "Very tidy", "Always clean", 0),
+                    ("🧹", "Moderate", "Clean enough", 1),
+                    ("😌", "Relaxed", "Lived-in feel", 2),
                 ]
                 HStack(spacing: AppSpacing.sm) {
-                    ForEach(options, id: \.label) { opt in
+                    ForEach(options, id: \.value) { opt in
                         lifestyleCard(
                             emoji: opt.emoji,
                             title: opt.label,
                             subtitle: opt.sub,
-                            selected: vm.cleanliness == opt.label
+                            selected: vm.cleanliness == opt.value
                         ) {
-                            vm.cleanliness = vm.cleanliness == opt.label ? nil : opt.label
+                            vm.cleanliness = vm.cleanliness == opt.value ? nil : opt.value
                         }
                     }
                 }

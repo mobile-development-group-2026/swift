@@ -20,7 +20,7 @@ struct StudentHomeView: View {
 
         var icon: String {
             switch self {
-            case .discover: "sparkle.magnifyingglass"
+            case .discover: "magnifyingglass.circle"
             case .map: "map"
             case .activity: "bell"
             case .messages: "bubble.left.and.bubble.right"

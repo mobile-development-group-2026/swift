@@ -144,10 +144,16 @@ struct ContentView: View {
         .onChange(of: clerk.user?.id) { oldId, newId in
             print("[ContentView] clerk.user changed: \(oldId ?? "nil") → \(newId ?? "nil")")
             if newId == nil {
-                router.popToRoot()
-                router.dismissModal()
-                session.clear()
-                loadTimedOut = false
+                // Debounce: wait briefly in case Clerk is re-establishing the session
+                Task {
+                    try? await Task.sleep(for: .seconds(0.5))
+                    if clerk.user == nil {
+                        router.popToRoot()
+                        router.dismissModal()
+                        session.clear()
+                        loadTimedOut = false
+                    }
+                }
             } else if oldId == nil && newId != nil {
                 print("[ContentView] sign-in detected, dismissing sheet")
                 router.dismissModal()

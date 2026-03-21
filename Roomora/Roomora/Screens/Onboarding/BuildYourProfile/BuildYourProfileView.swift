@@ -3,6 +3,9 @@ import PhotosUI
 
 struct BuildYourProfileView: View {
     @Bindable var vm: BuildYourProfileViewModel
+    var role: String = "student"
+
+    private var isStudent: Bool { role == "student" }
 
     private var bioHint: AttributedString {
         try! AttributedString(markdown: "Add at least **5 characters** to continue.")
@@ -19,7 +22,9 @@ struct BuildYourProfileView: View {
                     Text("profile")
                         .font(.h1(.bold))
                         .foregroundStyle(Color(.purple, 500))
-                    Text("A great profile gets you 3× more matches.")
+                    Text(isStudent
+                         ? "A great profile gets you 3× more matches."
+                         : "Help tenants know who they're renting from.")
                         .font(.body14())
                         .foregroundStyle(Color(.neutral, 800))
                         .padding(.top, AppSpacing.xxs)
@@ -69,7 +74,9 @@ struct BuildYourProfileView: View {
                         Text("Profile photo")
                             .font(.body16(.semiBold))
                             .foregroundStyle(Color(.neutral, 900))
-                        Text("A clear photo helps landlords and roommates feel confident about you.")
+                        Text(isStudent
+                             ? "A clear photo helps landlords and roommates feel confident about you."
+                             : "A clear photo helps tenants feel confident about renting from you.")
                             .font(.body12())
                             .foregroundStyle(Color(.neutral, 800))
                     }
@@ -82,31 +89,67 @@ struct BuildYourProfileView: View {
                     }
                 }
 
-                // university
-                AppTextField(
-                    icon: "building.columns",
-                    label: "UNIVERSITY",
-                    placeholder: "e.g. Tec de Monterrey",
-                    text: $vm.university
-                )
-
-                // birth year & graduation year
-                HStack(spacing: AppSpacing.md) {
+                if isStudent {
+                    // university
                     AppTextField(
+                        icon: "building.columns",
+                        label: "UNIVERSITY",
+                        placeholder: "e.g. Tec de Monterrey",
+                        text: $vm.university
+                    )
+
+                    // major
+                    VStack(alignment: .leading, spacing: AppSpacing.xs) {
+                        Text("MAJOR")
+                            .font(.body10(.semiBold))
+                            .foregroundStyle(Color(.neutral, 700))
+
+                        Menu {
+                            ForEach(BuildYourProfileViewModel.majors, id: \.self) { major in
+                                Button(major) { vm.major = major }
+                            }
+                        } label: {
+                            HStack(spacing: AppSpacing.sm) {
+                                Image(systemName: "book")
+                                    .foregroundStyle(Color(.neutral, 500))
+                                    .font(.body16())
+                                Text(vm.major ?? "Select your major")
+                                    .font(.body16())
+                                    .foregroundStyle(vm.major == nil ? Color(.neutral, 500) : Color(.neutral, 900))
+                                Spacer()
+                                Image(systemName: "chevron.down")
+                                    .font(.system(size: 12))
+                                    .foregroundStyle(Color(.neutral, 500))
+                            }
+                            .padding(AppSpacing.md)
+                            .background(
+                                RoundedRectangle(cornerRadius: 12)
+                                    .stroke(Color(.neutral, 500), lineWidth: 1)
+                            )
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+
+                // birth year (+ graduation year for students only)
+                HStack(spacing: AppSpacing.md) {
+                    yearPicker(
                         icon: "calendar",
                         label: "BIRTH YEAR",
-                        placeholder: "e.g. 2003",
-                        text: $vm.birthYear,
-                        keyboardType: .numberPad
+                        placeholder: "Select",
+                        years: BuildYourProfileViewModel.birthYears,
+                        selection: $vm.birthYear
                     )
 
-                    AppTextField(
-                        icon: "graduationcap",
-                        label: "GRADUATION YEAR",
-                        placeholder: "e.g. 2027",
-                        text: $vm.graduationYear,
-                        keyboardType: .numberPad
-                    )
+                    if isStudent {
+                        yearPicker(
+                            icon: "graduationcap",
+                            label: "GRAD YEAR",
+                            placeholder: "Select",
+                            years: BuildYourProfileViewModel.gradYears,
+                            selection: $vm.graduationYear
+                        )
+                    }
                 }
 
                 // bio
@@ -162,6 +205,45 @@ struct BuildYourProfileView: View {
             .padding(.horizontal, AppSpacing.lg)
             .padding(.top, AppSpacing.md)
             .padding(.bottom, AppSpacing.xl)
+        }
+    }
+
+    private func yearPicker(
+        icon: String,
+        label: String,
+        placeholder: String,
+        years: [Int],
+        selection: Binding<Int?>
+    ) -> some View {
+        VStack(alignment: .leading, spacing: AppSpacing.xs) {
+            Text(label)
+                .font(.body10(.semiBold))
+                .foregroundStyle(Color(.neutral, 700))
+
+            Menu {
+                ForEach(years.reversed(), id: \.self) { year in
+                    Button(String(year)) { selection.wrappedValue = year }
+                }
+            } label: {
+                HStack(spacing: AppSpacing.sm) {
+                    Image(systemName: icon)
+                        .foregroundStyle(Color(.neutral, 500))
+                        .font(.body16())
+                    Text(selection.wrappedValue.map(String.init) ?? placeholder)
+                        .font(.body16())
+                        .foregroundStyle(selection.wrappedValue == nil ? Color(.neutral, 500) : Color(.neutral, 900))
+                    Spacer()
+                    Image(systemName: "chevron.down")
+                        .font(.system(size: 12))
+                        .foregroundStyle(Color(.neutral, 500))
+                }
+                .padding(AppSpacing.md)
+                .background(
+                    RoundedRectangle(cornerRadius: 12)
+                        .stroke(Color(.neutral, 500), lineWidth: 1)
+                )
+            }
+            .buttonStyle(.plain)
         }
     }
 }

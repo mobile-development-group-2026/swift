@@ -39,24 +39,61 @@ struct StudentProfileResponse: Codable {
     let id: String
     let university: String?
     let major: String?
-    let age: Int?
     let birthYear: Int?
     let graduationYear: Int?
     let bio: String?
+    let hobbies: [String]?
 }
 
 struct LifestyleProfileResponse: Codable {
     let id: String
-    let noiseLevel: Int?
+    let spotsAvailable: Int?
+    let moveInMonth: String?
+    let genderPreference: Int?
+    let sleepSchedule: Int?
     let cleanlinessLevel: Int?
-    let sleepSchedule: String?
-    let smokingAllowed: Bool?
-    let petsAllowed: Bool?
-    let partiesAllowed: Bool?
-    let guestFrequency: Int?
-    let lifestyleTags: String?
+    let lifestyle: [String]?
+    let requirements: [String]?
+}
+
+struct LandlordProfileResponse: Codable {
+    let id: String
+    let birthYear: Int?
+    let bio: String?
+    let hobbies: [String]?
+}
+
+struct ListingResponse: Codable, Identifiable {
+    let id: String
+    let userId: String?
+    let listingType: String?
+    let title: String
+    let description: String?
+    let propertyType: String?
+    let address: String?
+    let city: String?
+    let state: String?
+    let zipCode: String?
+    let rent: String
+    let securityDeposit: String?
+    let availableDate: String?
+    let leaseTermMonths: Int?
+    let amenities: [String]?
+    let rules: [String]?
+    let status: String
+    let createdAt: String?
+    let updatedAt: String?
+}
+
+struct ListingProfileResponse: Codable {
+    let id: String
+    let maxBudget: Int?
+    let propertyType: String?
     let moveInDate: String?
-    let maxBudget: String?
+    let leaseLengthMonths: Int?
+    let maxDistance: Int?
+    let amenities: [String]?
+    let preferences: [String]?
 }
 
 struct SyncResponse: Codable {
@@ -74,4 +111,6 @@ struct SyncResponse: Codable {
     let updatedAt: String
     let studentProfile: StudentProfileResponse?
     let lifestyleProfile: LifestyleProfileResponse?
+    let listingProfile: ListingProfileResponse?
+    let landlordProfile: LandlordProfileResponse?
 }
