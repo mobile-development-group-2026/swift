@@ -10,6 +10,7 @@ struct AppButton: View {
     var variant: ButtonVariants = .primary
     let action: () -> Void
 
+    // visual components of button
     var body: some View {
         Button(action: action) {
             Text(title)
