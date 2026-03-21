@@ -119,7 +119,6 @@ struct SignInView: View {
         }
         .background(.white)
         .tint(Color(.neutral, 900))
-        .dismissKeyboardOnTap()
     }
 }
 

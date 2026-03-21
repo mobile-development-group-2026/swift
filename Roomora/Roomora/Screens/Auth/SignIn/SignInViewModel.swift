@@ -19,17 +19,14 @@ class SignInViewModel {
         isLoading = true
         errorMessage = nil
         do {
-            let signIn = try await clerk.auth.signInWithPassword(
+            _ = try await clerk.auth.signInWithPassword(
                 identifier: email,
                 password: password
             )
 
-            // Wait briefly for Clerk to establish the session
-            try? await Task.sleep(for: .seconds(1))
-
-            // Load profile directly — don't rely on clerk.user observation
+            // Reset session so ContentView picks up the load
             session.pendingSync = nil
-            await session.load(clerk: clerk)
+            session.isLoaded = false
 
             isLoading = false
             return true
