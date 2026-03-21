@@ -87,10 +87,12 @@ struct OnboardingView: View {
                     : "Continue  →",
                 variant: .primary
             ) {
-                if vm.isLastStep {
-                    Task { await vm.complete(clerk: clerk) }
-                } else {
-                    vm.nextStep()
+                Task {
+                    if vm.isLastStep {
+                        await vm.complete(clerk: clerk)
+                    } else {
+                        await vm.nextStep(clerk: clerk)
+                    }
                 }
             }
             .disabled(!vm.canContinue)

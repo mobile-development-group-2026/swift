@@ -5,12 +5,49 @@ import PhotosUI
 class BuildYourProfileViewModel {
     var bio = ""
     var university = ""
-    var birthYear = ""
-    var graduationYear = ""
+    var major: String?
+    var birthYear: Int?
+    var graduationYear: Int?
     var selectedHobbies: Set<String> = []
     let maxHobbies = 5
     var profilePhoto: Image?
     var photoPickerItem: PhotosPickerItem?
+
+    static let birthYears = Array(1970...Calendar.current.component(.year, from: Date()))
+    static let gradYears = Array(1970...Calendar.current.component(.year, from: Date()) + 5)
+
+    static let majors = [
+        "Computer Science",
+        "Business Administration",
+        "Mechanical Engineering",
+        "Electrical Engineering",
+        "Civil Engineering",
+        "Economics",
+        "Psychology",
+        "Biology",
+        "Chemistry",
+        "Mathematics",
+        "Physics",
+        "Political Science",
+        "Communications",
+        "Architecture",
+        "Law",
+        "Medicine",
+        "Nursing",
+        "Finance",
+        "Marketing",
+        "Graphic Design",
+        "Industrial Engineering",
+        "Environmental Science",
+        "International Relations",
+        "Data Science",
+        "Philosophy",
+        "Sociology",
+        "Art History",
+        "Music",
+        "Education",
+        "Other"
+    ]
 
     static let hobbies = [
         "📚 Reading", "😴 Sleeping", "🎣 Fishing", "🌙 Star gazing",

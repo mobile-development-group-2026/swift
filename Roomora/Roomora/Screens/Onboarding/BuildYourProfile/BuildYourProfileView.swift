@@ -90,22 +90,53 @@ struct BuildYourProfileView: View {
                     text: $vm.university
                 )
 
+                // major
+                VStack(alignment: .leading, spacing: AppSpacing.xs) {
+                    Text("MAJOR")
+                        .font(.body10(.semiBold))
+                        .foregroundStyle(Color(.neutral, 700))
+
+                    Menu {
+                        ForEach(BuildYourProfileViewModel.majors, id: \.self) { major in
+                            Button(major) { vm.major = major }
+                        }
+                    } label: {
+                        HStack(spacing: AppSpacing.sm) {
+                            Image(systemName: "book")
+                                .foregroundStyle(Color(.neutral, 500))
+                                .font(.body16())
+                            Text(vm.major ?? "Select your major")
+                                .font(.body16())
+                                .foregroundStyle(vm.major == nil ? Color(.neutral, 500) : Color(.neutral, 900))
+                            Spacer()
+                            Image(systemName: "chevron.down")
+                                .font(.system(size: 12))
+                                .foregroundStyle(Color(.neutral, 500))
+                        }
+                        .padding(AppSpacing.md)
+                        .background(
+                            RoundedRectangle(cornerRadius: 12)
+                                .stroke(Color(.neutral, 500), lineWidth: 1)
+                        )
+                    }
+                }
+
                 // birth year & graduation year
                 HStack(spacing: AppSpacing.md) {
-                    AppTextField(
+                    yearPicker(
                         icon: "calendar",
                         label: "BIRTH YEAR",
-                        placeholder: "e.g. 2003",
-                        text: $vm.birthYear,
-                        keyboardType: .numberPad
+                        placeholder: "Select",
+                        years: BuildYourProfileViewModel.birthYears,
+                        selection: $vm.birthYear
                     )
 
-                    AppTextField(
+                    yearPicker(
                         icon: "graduationcap",
-                        label: "GRADUATION YEAR",
-                        placeholder: "e.g. 2027",
-                        text: $vm.graduationYear,
-                        keyboardType: .numberPad
+                        label: "GRAD YEAR",
+                        placeholder: "Select",
+                        years: BuildYourProfileViewModel.gradYears,
+                        selection: $vm.graduationYear
                     )
                 }
 
@@ -162,6 +193,44 @@ struct BuildYourProfileView: View {
             .padding(.horizontal, AppSpacing.lg)
             .padding(.top, AppSpacing.md)
             .padding(.bottom, AppSpacing.xl)
+        }
+    }
+
+    private func yearPicker(
+        icon: String,
+        label: String,
+        placeholder: String,
+        years: [Int],
+        selection: Binding<Int?>
+    ) -> some View {
+        VStack(alignment: .leading, spacing: AppSpacing.xs) {
+            Text(label)
+                .font(.body10(.semiBold))
+                .foregroundStyle(Color(.neutral, 700))
+
+            Menu {
+                ForEach(years.reversed(), id: \.self) { year in
+                    Button(String(year)) { selection.wrappedValue = year }
+                }
+            } label: {
+                HStack(spacing: AppSpacing.sm) {
+                    Image(systemName: icon)
+                        .foregroundStyle(Color(.neutral, 500))
+                        .font(.body16())
+                    Text(selection.wrappedValue.map(String.init) ?? placeholder)
+                        .font(.body16())
+                        .foregroundStyle(selection.wrappedValue == nil ? Color(.neutral, 500) : Color(.neutral, 900))
+                    Spacer()
+                    Image(systemName: "chevron.down")
+                        .font(.system(size: 12))
+                        .foregroundStyle(Color(.neutral, 500))
+                }
+                .padding(AppSpacing.md)
+                .background(
+                    RoundedRectangle(cornerRadius: 12)
+                        .stroke(Color(.neutral, 500), lineWidth: 1)
+                )
+            }
         }
     }
 }

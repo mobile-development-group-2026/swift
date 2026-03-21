@@ -39,10 +39,10 @@ struct StudentProfileResponse: Codable {
     let id: String
     let university: String?
     let major: String?
-    let age: Int?
     let birthYear: Int?
     let graduationYear: Int?
     let bio: String?
+    let hobbies: [String]?
 }
 
 struct LifestyleProfileResponse: Codable {
