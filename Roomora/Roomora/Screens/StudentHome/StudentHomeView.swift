@@ -340,7 +340,7 @@ struct StudentHomeView: View {
         }
     }
 
-    private func nearbyCard(_ listing: Listing) -> some View {
+    private func nearbyCard(_ listing: MockListing) -> some View {
         VStack(alignment: .leading, spacing: 0) {
             // image
             ZStack(alignment: .topTrailing) {
