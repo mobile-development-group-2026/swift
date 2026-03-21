@@ -11,7 +11,7 @@ struct PillBadge: View {
                 .frame(width: 8, height: 8)
 
             Text(label)
-                .font(.body14())
+                .font(.body12())
                 .foregroundStyle(.white)
         }
         .padding(.horizontal, 16)
