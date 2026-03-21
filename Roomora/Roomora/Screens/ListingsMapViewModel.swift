@@ -39,7 +39,7 @@ final class ListingsMapViewModel: ObservableObject {
         defer { isLoading = false }
 
         do {
-            let listings = try await ListingService.shared.searchListings(filters: SearchFilters())
+            let listings = MockMapListings.listings
             var items: [ListingMapItem] = []
 
             for listing in listings {
