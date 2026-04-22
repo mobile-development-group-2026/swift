@@ -2,7 +2,29 @@ import SwiftUI
 
 struct ListingDetailSheet: View {
     let listing: ListingResponse
+    var showApplyButton: Bool = false
+    var initiallyFavorited: Bool = false
+    var onApplicationSubmitted: (() -> Void)? = nil
+    var onFavoriteToggled: (() async -> Void)? = nil
+
     @Environment(\.dismiss) private var dismiss
+    @State private var showApply = false
+    @State private var favorited: Bool = false
+
+    init(
+        listing: ListingResponse,
+        showApplyButton: Bool = false,
+        initiallyFavorited: Bool = false,
+        onApplicationSubmitted: (() -> Void)? = nil,
+        onFavoriteToggled: (() async -> Void)? = nil
+    ) {
+        self.listing = listing
+        self.showApplyButton = showApplyButton
+        self.initiallyFavorited = initiallyFavorited
+        self.onApplicationSubmitted = onApplicationSubmitted
+        self.onFavoriteToggled = onFavoriteToggled
+        _favorited = State(initialValue: initiallyFavorited)
+    }
 
     private var rentValue: Int { Int(Double(listing.rent) ?? 0) }
     private var depositValue: Int? {
@@ -44,6 +66,43 @@ struct ListingDetailSheet: View {
             .padding(.bottom, AppSpacing.xxl)
         }
         .background(Color(.neutral, 100))
+        .safeAreaInset(edge: .bottom, spacing: 0) {
+            if showApplyButton || onFavoriteToggled != nil {
+                VStack(spacing: 0) {
+                    Divider()
+                    HStack(spacing: AppSpacing.md) {
+                        // star button — always shown when onFavoriteToggled provided
+                        if onFavoriteToggled != nil {
+                            Button {
+                                favorited.toggle()        // immediate feedback
+                                Task { await onFavoriteToggled?() }
+                            } label: {
+                                Image(systemName: favorited ? "star.fill" : "star")
+                                    .font(.system(size: 22))
+                                    .foregroundStyle(favorited ? Color(.yellow, 500) : Color(.neutral, 400))
+                                    .frame(width: 52, height: 52)
+                                    .background(
+                                        RoundedRectangle(cornerRadius: 14)
+                                            .fill(favorited ? Color(.yellow, 100) : Color(.neutral, 100))
+                                    )
+                            }
+                            .buttonStyle(.plain)
+                        }
+
+                        if showApplyButton {
+                            AppButton(title: "Apply Now", variant: .primary) {
+                                showApply = true
+                            }
+                        }
+                    }
+                    .padding(AppSpacing.lg)
+                    .background(.white)
+                }
+            }
+        }
+        .sheet(isPresented: $showApply) {
+            ApplyForListingSheet(listing: listing, onSubmitted: onApplicationSubmitted)
+        }
         .overlay(alignment: .topTrailing) {
             Button {
                 dismiss()

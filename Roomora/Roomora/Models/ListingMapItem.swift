@@ -15,5 +15,5 @@ struct ListingMapItem: Identifiable {
     let city: String
     let rent: Double
     let coordinate: CLLocationCoordinate2D
-    let listing: Listing
+    let listing: ListingResponse
 }

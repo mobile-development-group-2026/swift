@@ -64,7 +64,10 @@ class APIClient {
 
         guard (200...299).contains(http.statusCode) else {
             let errorBody = try? JSONDecoder().decode(ErrorResponse.self, from: data)
-            throw APIError.server(status: http.statusCode, message: errorBody?.error ?? "Unknown error")
+            let message = errorBody?.error ?? "Server error (\(http.statusCode))"
+            print("❌ API \(http.statusCode) — \(method) \(path): \(message)")
+            if let raw = String(data: data, encoding: .utf8) { print("   Raw: \(raw.prefix(300))") }
+            throw APIError.server(status: http.statusCode, message: message)
         }
 
         return data

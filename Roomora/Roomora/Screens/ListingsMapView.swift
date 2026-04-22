@@ -10,6 +10,7 @@ import MapKit
 
 struct ListingsMapView: View {
     @StateObject private var viewModel = ListingsMapViewModel()
+    @State private var selectedListing: ListingResponse?
 
     var body: some View {
         ZStack(alignment: .bottom) {
@@ -38,12 +39,15 @@ struct ListingsMapView: View {
 
             if let selectedItem = viewModel.selectedItem {
                 MapListingDetailCard(item: selectedItem) {
-                    print("Open details for listing: \(selectedItem.id)")
+                    selectedListing = selectedItem.listing
                 }
                 .padding()
             }
         }
         .navigationTitle("Map")
         .navigationBarTitleDisplayMode(.inline)
+        .sheet(item: $selectedListing) { listing in
+            ListingDetailSheet(listing: listing, showApplyButton: true)
+        }
     }
 }

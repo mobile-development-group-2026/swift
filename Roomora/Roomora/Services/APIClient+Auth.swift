@@ -78,11 +78,46 @@ struct ListingResponse: Codable, Identifiable, Hashable {
     let securityDeposit: String?
     let availableDate: String?
     let leaseTermMonths: Int?
+    let bedrooms: Int?
+    let bathrooms: Int?
+    let latitude: Double?
+    let longitude: Double?
     let amenities: [String]?
     let rules: [String]?
     let status: String
+    let favoritesCount: Int?
     let createdAt: String?
     let updatedAt: String?
+}
+
+struct ApplicationStudentInfo: Codable {
+    let id: String
+    let firstName: String
+    let lastName: String
+    let email: String
+    let verified: Bool
+
+    var fullName: String { "\(firstName) \(lastName)" }
+}
+
+struct ApplicationListingInfo: Codable {
+    let id: String
+    let title: String
+}
+
+struct ApplicationResponse: Codable, Identifiable {
+    let id: String
+    let listingId: String
+    let studentId: String
+    let status: String
+    let preferredVisitAt: String?
+    let studentNotes: String?
+    let landlordNotes: String?
+    let reviewedAt: String?
+    let createdAt: String
+    let updatedAt: String
+    let listing: ApplicationListingInfo?
+    let student: ApplicationStudentInfo?
 }
 
 struct ListingProfileResponse: Codable {
