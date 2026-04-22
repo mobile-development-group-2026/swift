@@ -11,6 +11,14 @@ struct ListingDetailSheet: View {
     }
     private var isActive: Bool { listing.status == "active" }
 
+    /// Builds a display string from whichever location fields are present.
+    private var locationDisplay: String? {
+        let parts = [listing.address, listing.city, listing.state]
+            .compactMap { $0 }
+            .filter { !$0.isEmpty }
+        return parts.isEmpty ? nil : parts.joined(separator: ", ")
+    }
+
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 0) {
@@ -29,8 +37,8 @@ struct ListingDetailSheet: View {
                 if let desc = listing.description, !desc.isEmpty {
                     descriptionSection(desc)
                 }
-                if let address = listing.address, !address.isEmpty {
-                    locationSection(address)
+                if let location = locationDisplay {
+                    locationSection(location)
                 }
             }
             .padding(.bottom, AppSpacing.xxl)

@@ -9,6 +9,7 @@ struct LandlordHomeView: View {
     @State private var selectedTab: LandlordTab = .listings
     @State private var activeNavTab: LandlordNavTab = .dashboard
     @State private var selectedListing: ListingResponse?
+    @State private var showCreateListing = false
 
     enum LandlordTab: String, CaseIterable {
         case listings = "My Listings"
@@ -59,6 +60,12 @@ struct LandlordHomeView: View {
         }
         .sheet(item: $selectedListing) { listing in
             ListingDetailSheet(listing: listing)
+        }
+        .fullScreenCover(isPresented: $showCreateListing) {
+            CreateListingSheet { newListing in
+                vm.listings.insert(newListing, at: 0)
+            }
+            .environment(Clerk.shared)
         }
     }
 
@@ -153,7 +160,7 @@ struct LandlordHomeView: View {
     private var myListings: some View {
         VStack(alignment: .leading, spacing: AppSpacing.md) {
             // add listing button
-            Button {} label: {
+            Button { showCreateListing = true } label: {
                 HStack(spacing: AppSpacing.xs) {
                     Image(systemName: "plus.circle.fill")
                         .font(.system(size: 18))
