@@ -26,6 +26,8 @@ struct NewListingView: View {
 
                 photosSection
                 detailsSection
+                locationSection
+                roomsSection
                 propertyTypeSection
                 leaseSection
                 amenitiesSection
@@ -148,6 +150,101 @@ struct NewListingView: View {
         }
     }
 
+    // MARK: - Location
+
+    private var locationSection: some View {
+        VStack(alignment: .leading, spacing: AppSpacing.md) {
+            sectionLabel("LOCATION")
+
+            AppTextField(
+                icon: "mappin.and.ellipse",
+                label: "CITY *",
+                placeholder: "Bogotá",
+                text: $vm.city
+            )
+
+            AppTextField(
+                icon: "map",
+                label: "ADDRESS",
+                placeholder: "Cra 7 #40-62, Apt 301",
+                text: $vm.address
+            )
+
+            HStack(spacing: AppSpacing.md) {
+                AppTextField(
+                    icon: "flag",
+                    label: "STATE / DEPT",
+                    placeholder: "Cundinamarca",
+                    text: $vm.state
+                )
+                AppTextField(
+                    icon: "number",
+                    label: "ZIP CODE",
+                    placeholder: "110111",
+                    text: $vm.zipCode,
+                    keyboardType: .numberPad
+                )
+            }
+        }
+    }
+
+    // MARK: - Rooms
+
+    private var roomsSection: some View {
+        VStack(alignment: .leading, spacing: AppSpacing.sm) {
+            sectionLabel("ROOMS")
+
+            HStack(spacing: AppSpacing.md) {
+                roomStepper(label: "BEDROOMS", value: $vm.bedrooms)
+                roomStepper(label: "BATHROOMS", value: $vm.bathrooms)
+            }
+        }
+    }
+
+    private func roomStepper(label: String, value: Binding<Int>) -> some View {
+        VStack(alignment: .leading, spacing: AppSpacing.xs) {
+            Text(label)
+                .font(.body10(.semiBold))
+                .foregroundStyle(Color(.neutral, 700))
+
+            HStack(spacing: AppSpacing.md) {
+                Button {
+                    if value.wrappedValue > 1 { value.wrappedValue -= 1 }
+                } label: {
+                    Image(systemName: "minus")
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundStyle(Color(.neutral, 600))
+                        .frame(width: 30, height: 30)
+                        .background(Circle().fill(Color(.neutral, 100)))
+                }
+                .buttonStyle(.plain)
+
+                Text("\(value.wrappedValue)")
+                    .font(.body16(.bold))
+                    .foregroundStyle(Color(.neutral, 900))
+                    .frame(minWidth: 24)
+
+                Button {
+                    if value.wrappedValue < 10 { value.wrappedValue += 1 }
+                } label: {
+                    Image(systemName: "plus")
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundStyle(Color(.purple, 500))
+                        .frame(width: 30, height: 30)
+                        .background(Circle().fill(Color(.purple, 100)))
+                }
+                .buttonStyle(.plain)
+            }
+            .padding(AppSpacing.md)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(
+                RoundedRectangle(cornerRadius: 12)
+                    .stroke(Color(.neutral, 300), lineWidth: 1)
+            )
+        }
+        .frame(maxWidth: .infinity)
+    }
+
     // MARK: - Property Type
 
     private var propertyTypeSection: some View {
@@ -241,7 +338,7 @@ struct NewListingView: View {
 
     private var amenitiesSection: some View {
         VStack(alignment: .leading, spacing: AppSpacing.sm) {
-            sectionLabel("AMENITIES")
+            sectionLabel("AMENITIES (OPTIONAL)")
 
             FlowLayout(spacing: AppSpacing.xs) {
                 ForEach(NewListingViewModel.amenities, id: \.self) { amenity in
@@ -273,7 +370,7 @@ struct NewListingView: View {
 
     private var rulesSection: some View {
         VStack(alignment: .leading, spacing: AppSpacing.sm) {
-            sectionLabel("NON-NEGOTIABLE RULES")
+            sectionLabel("NON-NEGOTIABLE RULES (OPTIONAL)")
 
             FlowLayout(spacing: AppSpacing.xs) {
                 ForEach(NewListingViewModel.rules, id: \.self) { rule in

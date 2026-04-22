@@ -12,6 +12,16 @@ class NewListingViewModel {
     var selectedRules: Set<String> = []
     var description = ""
 
+    // Location
+    var city = ""
+    var address = ""
+    var state = ""
+    var zipCode = ""
+
+    // Rooms
+    var bedrooms = 1
+    var bathrooms = 1
+
     static let propertyTypes = [
         "Shared room", "Studio", "1 bedroom", "2 bedrooms", "3+ bedrooms"
     ]
@@ -27,7 +37,7 @@ class NewListingViewModel {
         "Quiet after 10 pm", "Students only"
     ]
 
-    let descriptionMinChars = 80
+    let descriptionMinChars = 10
 
     func toggleAmenity(_ item: String) {
         if selectedAmenities.contains(item) {
@@ -45,7 +55,18 @@ class NewListingViewModel {
         }
     }
 
+    /// Lenient — used by onboarding (just needs title + rent to advance).
     var canContinue: Bool {
         !title.isEmpty && !monthlyRent.isEmpty
+    }
+
+    /// Strict — used by the standalone Create Listing form.
+    var canSubmit: Bool {
+        !title.isEmpty &&
+        !monthlyRent.isEmpty &&
+        propertyType != nil &&
+        !city.isEmpty &&
+        !address.isEmpty &&
+        description.count >= descriptionMinChars
     }
 }
