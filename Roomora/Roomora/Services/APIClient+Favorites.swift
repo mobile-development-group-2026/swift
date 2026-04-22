@@ -8,6 +8,11 @@ struct FavoriteToggleResponse: Codable {
 
 extension APIClient {
 
+    /// Fire-and-forget — called when detail sheet opens.
+    func trackView(listingId: String) async {
+        try? await post(path: "/listings/\(listingId)/view", body: [:], clerk: Clerk.shared)
+    }
+
     // GET /api/v1/favorites — current user's favorited listings
     func fetchFavorites(clerk: Clerk) async throws -> [ListingResponse] {
         let data = try await get(path: "/favorites", clerk: clerk)

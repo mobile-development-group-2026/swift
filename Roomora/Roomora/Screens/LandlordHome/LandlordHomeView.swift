@@ -91,13 +91,17 @@ struct LandlordHomeView: View {
 
     // MARK: - Stats Row
 
+    private var totalViews: Int {
+        vm.listings.reduce(0) { $0 + ($1.viewsCount ?? 0) }
+    }
+
     private var totalStars: Int {
         vm.listings.reduce(0) { $0 + ($1.favoritesCount ?? 0) }
     }
 
     private var statsRow: some View {
         HStack(spacing: AppSpacing.sm) {
-            statCard(icon: "eye.fill", value: "—", label: "Views")
+            statCard(icon: "eye.fill", value: "\(totalViews)", label: "Views")
             statCard(icon: "doc.text.fill", value: "\(vm.applications.count)", label: "Applications")
             statCard(icon: "house.fill", value: "\(vm.listings.count)", label: "Listings")
             statCard(icon: "star.fill", value: "\(totalStars)", label: "Stars")

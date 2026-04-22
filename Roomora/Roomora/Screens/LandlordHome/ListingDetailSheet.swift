@@ -66,6 +66,7 @@ struct ListingDetailSheet: View {
             .padding(.bottom, AppSpacing.xxl)
         }
         .background(Color(.neutral, 100))
+        .task { await APIClient.shared.trackView(listingId: listing.id) }
         .safeAreaInset(edge: .bottom, spacing: 0) {
             if showApplyButton {
                 VStack(spacing: 0) {

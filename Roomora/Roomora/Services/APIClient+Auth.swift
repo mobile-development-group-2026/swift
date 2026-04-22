@@ -86,6 +86,7 @@ struct ListingResponse: Codable, Identifiable, Hashable {
     let rules: [String]?
     let status: String
     let favoritesCount: Int?
+    let viewsCount: Int?
     let createdAt: String?
     let updatedAt: String?
 }
