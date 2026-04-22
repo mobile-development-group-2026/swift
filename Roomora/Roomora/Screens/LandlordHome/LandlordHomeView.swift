@@ -18,16 +18,12 @@ struct LandlordHomeView: View {
 
     enum LandlordNavTab: String, CaseIterable {
         case dashboard = "Dashboard"
-        case listings = "Listings"
-        case activity = "Activity"
         case messages = "Messages"
         case profile = "Profile"
 
         var icon: String {
             switch self {
             case .dashboard: "square.grid.2x2"
-            case .listings: "house"
-            case .activity: "bell"
             case .messages: "bubble.left.and.bubble.right"
             case .profile: "person"
             }
@@ -57,6 +53,7 @@ struct LandlordHomeView: View {
         .background(Color(.neutral, 100))
         .task {
             await vm.loadListings(clerk: clerk)
+            await vm.loadApplications(clerk: clerk)
         }
         .sheet(item: $selectedListing) { listing in
             ListingDetailSheet(listing: listing)
@@ -94,12 +91,16 @@ struct LandlordHomeView: View {
 
     // MARK: - Stats Row
 
+    private var totalStars: Int {
+        vm.listings.reduce(0) { $0 + ($1.favoritesCount ?? 0) }
+    }
+
     private var statsRow: some View {
         HStack(spacing: AppSpacing.sm) {
             statCard(icon: "eye.fill", value: "—", label: "Views")
-            statCard(icon: "doc.text.fill", value: "—", label: "Applications")
+            statCard(icon: "doc.text.fill", value: "\(vm.applications.count)", label: "Applications")
             statCard(icon: "house.fill", value: "\(vm.listings.count)", label: "Listings")
-            statCard(icon: "star.fill", value: "—", label: "Rating")
+            statCard(icon: "star.fill", value: "\(totalStars)", label: "Stars")
         }
         .padding(.horizontal, AppSpacing.lg)
     }
@@ -123,6 +124,8 @@ struct LandlordHomeView: View {
                 .fill(.white)
         )
     }
+
+    // MARK: - Tab Picker
 
     // MARK: - Tab Picker
 
@@ -215,6 +218,7 @@ struct LandlordHomeView: View {
         let rentValue = Int(Double(listing.rent) ?? 0)
         let isActive = listing.status == "active"
         let icon = iconForPropertyType(listing.propertyType)
+        let stars = listing.favoritesCount ?? 0
 
         return HStack(spacing: AppSpacing.md) {
             // thumbnail
@@ -267,6 +271,15 @@ struct LandlordHomeView: View {
             }
 
             Spacer()
+
+            VStack(spacing: AppSpacing.xxs) {
+                Image(systemName: "star.fill")
+                    .font(.system(size: 14))
+                    .foregroundStyle(Color(.yellow, 400))
+                Text("\(stars)")
+                    .font(.body12(.bold))
+                    .foregroundStyle(Color(.neutral, 700))
+            }
         }
         .padding(AppSpacing.md)
         .background(
@@ -292,75 +305,120 @@ struct LandlordHomeView: View {
 
     private var recentApplications: some View {
         VStack(alignment: .leading, spacing: AppSpacing.md) {
-            ForEach(MockLandlordData.recentApplications) { app in
-                applicationCard(app)
+            if vm.isLoadingApplications {
+                ProgressView()
+                    .frame(maxWidth: .infinity)
+                    .padding(.top, AppSpacing.xl)
+            } else if vm.applications.isEmpty {
+                VStack(spacing: AppSpacing.sm) {
+                    Image(systemName: "doc.text")
+                        .font(.system(size: 40))
+                        .foregroundStyle(Color(.neutral, 300))
+                    Text("No applications yet")
+                        .font(.body16(.semiBold))
+                        .foregroundStyle(Color(.neutral, 500))
+                    Text("Students will appear here once they apply for your listings.")
+                        .font(.body14())
+                        .foregroundStyle(Color(.neutral, 400))
+                        .multilineTextAlignment(.center)
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, AppSpacing.xl)
+                .padding(.horizontal, AppSpacing.lg)
+            } else {
+                ForEach(vm.applications) { app in
+                    applicationCard(app)
+                }
             }
         }
     }
 
-    private func applicationCard(_ app: TenantApplication) -> some View {
-        HStack(spacing: AppSpacing.md) {
-            // avatar placeholder
+    private func applicationCard(_ app: ApplicationResponse) -> some View {
+        let name = app.student?.fullName ?? "Applicant"
+        let initial = String(name.prefix(1))
+        let isVerified = app.student?.verified ?? false
+        let isPending = app.status == "pending"
+
+        return HStack(spacing: AppSpacing.md) {
+            // avatar
             Circle()
                 .fill(Color(.purple, 100))
                 .frame(width: 48, height: 48)
                 .overlay(
-                    Text(String(app.name.prefix(1)))
+                    Text(initial)
                         .font(.body18(.bold))
                         .foregroundStyle(Color(.purple, 500))
                 )
 
             VStack(alignment: .leading, spacing: AppSpacing.xxs) {
                 HStack(spacing: AppSpacing.xs) {
-                    Text(app.name)
+                    Text(name)
                         .font(.body14(.semiBold))
                         .foregroundStyle(Color(.neutral, 900))
-                    if app.verified {
+                    if isVerified {
                         Image(systemName: "checkmark.shield.fill")
                             .font(.system(size: 12))
                             .foregroundStyle(Color(.purple, 500))
                     }
                 }
 
-                Text(app.university)
-                    .font(.body12())
-                    .foregroundStyle(Color(.neutral, 500))
+                // listing title
+                if let title = app.listing?.title {
+                    Text(title)
+                        .font(.body12())
+                        .foregroundStyle(Color(.neutral, 500))
+                        .lineLimit(1)
+                }
 
-                HStack(spacing: AppSpacing.sm) {
-                    HStack(spacing: AppSpacing.xxs) {
-                        Image(systemName: "calendar")
-                            .font(.system(size: 10))
-                        Text(app.moveIn)
-                            .font(.body10())
+                // status or visit date
+                HStack(spacing: AppSpacing.xs) {
+                    statusPill(app.status)
+
+                    if let visit = app.preferredVisitAt {
+                        HStack(spacing: AppSpacing.xxs) {
+                            Image(systemName: "calendar")
+                                .font(.system(size: 10))
+                            Text(formatDate(visit))
+                                .font(.body10())
+                        }
+                        .foregroundStyle(Color(.neutral, 500))
                     }
-                    .foregroundStyle(Color(.neutral, 500))
+                }
 
-                    Text("\(app.compatibility)% match")
-                        .font(.body10(.bold))
-                        .foregroundStyle(Color(.green, 500))
+                if let notes = app.studentNotes, !notes.isEmpty {
+                    Text(notes)
+                        .font(.body10())
+                        .foregroundStyle(Color(.neutral, 500))
+                        .lineLimit(1)
                 }
             }
 
             Spacer()
 
-            // actions
-            VStack(spacing: AppSpacing.xs) {
-                Button {} label: {
-                    Text("Review")
-                        .font(.body12(.semiBold))
-                        .foregroundStyle(.white)
-                        .padding(.horizontal, AppSpacing.md)
-                        .padding(.vertical, AppSpacing.xs)
-                        .background(
-                            RoundedRectangle(cornerRadius: 8)
-                                .fill(Color(.purple, 500))
-                        )
-                }
+            // approve / deny — only for pending
+            if isPending {
+                VStack(spacing: AppSpacing.xs) {
+                    Button {
+                        Task { await vm.updateApplication(clerk: clerk, id: app.id, status: "approved", notes: nil) }
+                    } label: {
+                        Text("Approve")
+                            .font(.body12(.semiBold))
+                            .foregroundStyle(.white)
+                            .padding(.horizontal, AppSpacing.sm)
+                            .padding(.vertical, AppSpacing.xs)
+                            .background(
+                                RoundedRectangle(cornerRadius: 8)
+                                    .fill(Color(.green, 500))
+                            )
+                    }
 
-                Button {} label: {
-                    Text("Decline")
-                        .font(.body12())
-                        .foregroundStyle(Color(.neutral, 500))
+                    Button {
+                        Task { await vm.updateApplication(clerk: clerk, id: app.id, status: "denied", notes: nil) }
+                    } label: {
+                        Text("Deny")
+                            .font(.body12())
+                            .foregroundStyle(Color(.neutral, 500))
+                    }
                 }
             }
         }
@@ -371,6 +429,35 @@ struct LandlordHomeView: View {
         )
         .shadow(color: .black.opacity(0.04), radius: 8, y: 2)
         .padding(.horizontal, AppSpacing.lg)
+    }
+
+    private func statusPill(_ status: String) -> some View {
+        let (label, fg, bg): (String, AppHue, AppHue) = switch status {
+        case "approved": ("Approved", .green, .green)
+        case "denied":   ("Denied",   .red,   .red)
+        default:         ("Pending",  .neutral, .neutral)
+        }
+
+        return Text(label)
+            .font(.body10(.bold))
+            .foregroundStyle(Color(fg, fg == .neutral ? 600 : 700))
+            .padding(.horizontal, AppSpacing.xs)
+            .padding(.vertical, 2)
+            .background(
+                Capsule().fill(Color(bg, bg == .neutral ? 200 : 100))
+            )
+    }
+
+    private func formatDate(_ iso: String) -> String {
+        let formatter = ISO8601DateFormatter()
+        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        if let date = formatter.date(from: iso) {
+            let display = DateFormatter()
+            display.dateFormat = "MMM d, HH:mm"
+            return display.string(from: date)
+        }
+        // fallback: strip to first 10 chars (yyyy-MM-dd)
+        return String(iso.prefix(10))
     }
 
     // MARK: - Bottom Nav

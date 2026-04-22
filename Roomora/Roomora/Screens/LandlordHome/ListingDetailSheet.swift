@@ -2,7 +2,29 @@ import SwiftUI
 
 struct ListingDetailSheet: View {
     let listing: ListingResponse
+    var showApplyButton: Bool = false
+    var initiallyFavorited: Bool = false
+    var onApplicationSubmitted: (() -> Void)? = nil
+    var onFavoriteToggled: (() async -> Void)? = nil
+
     @Environment(\.dismiss) private var dismiss
+    @State private var showApply = false
+    @State private var favorited: Bool = false
+
+    init(
+        listing: ListingResponse,
+        showApplyButton: Bool = false,
+        initiallyFavorited: Bool = false,
+        onApplicationSubmitted: (() -> Void)? = nil,
+        onFavoriteToggled: (() async -> Void)? = nil
+    ) {
+        self.listing = listing
+        self.showApplyButton = showApplyButton
+        self.initiallyFavorited = initiallyFavorited
+        self.onApplicationSubmitted = onApplicationSubmitted
+        self.onFavoriteToggled = onFavoriteToggled
+        _favorited = State(initialValue: initiallyFavorited)
+    }
 
     private var rentValue: Int { Int(Double(listing.rent) ?? 0) }
     private var depositValue: Int? {
@@ -44,22 +66,50 @@ struct ListingDetailSheet: View {
             .padding(.bottom, AppSpacing.xxl)
         }
         .background(Color(.neutral, 100))
+        .safeAreaInset(edge: .bottom, spacing: 0) {
+            if showApplyButton {
+                VStack(spacing: 0) {
+                    Divider()
+                    AppButton(title: "Apply Now", variant: .primary) {
+                        showApply = true
+                    }
+                    .padding(AppSpacing.lg)
+                    .background(.white)
+                }
+            }
+        }
+        .sheet(isPresented: $showApply) {
+            ApplyForListingSheet(listing: listing, onSubmitted: onApplicationSubmitted)
+        }
         .overlay(alignment: .topTrailing) {
-            Button {
-                dismiss()
-            } label: {
+            Button { dismiss() } label: {
                 Image(systemName: "xmark")
                     .font(.system(size: 14, weight: .bold))
                     .foregroundStyle(Color(.neutral, 600))
                     .frame(width: 32, height: 32)
-                    .background(
-                        Circle()
-                            .fill(.white)
-                            .shadow(color: .black.opacity(0.1), radius: 4, y: 2)
-                    )
+                    .background(Circle().fill(.white).shadow(color: .black.opacity(0.1), radius: 4, y: 2))
             }
             .padding(.trailing, AppSpacing.lg)
             .padding(.top, AppSpacing.md)
+        }
+        .overlay(alignment: .topLeading) {
+            if onFavoriteToggled != nil {
+                Button {
+                    withAnimation(.spring(response: 0.3, dampingFraction: 0.6)) {
+                        favorited.toggle()
+                    }
+                    Task { await onFavoriteToggled?() }
+                } label: {
+                    Image(systemName: favorited ? "star.fill" : "star")
+                        .font(.system(size: 15, weight: .semibold))
+                        .foregroundStyle(favorited ? Color(.yellow, 500) : Color(.neutral, 500))
+                        .frame(width: 32, height: 32)
+                        .background(Circle().fill(.white).shadow(color: .black.opacity(0.1), radius: 4, y: 2))
+                        .scaleEffect(favorited ? 1.15 : 1.0)
+                }
+                .padding(.leading, AppSpacing.lg)
+                .padding(.top, AppSpacing.md)
+            }
         }
     }
 

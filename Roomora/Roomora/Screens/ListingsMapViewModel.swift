@@ -9,6 +9,7 @@ import Foundation
 import MapKit
 import Combine
 import CoreLocation
+import ClerkKit
 
 @MainActor
 final class ListingsMapViewModel: ObservableObject {
@@ -39,7 +40,7 @@ final class ListingsMapViewModel: ObservableObject {
         defer { isLoading = false }
 
         do {
-            let listings = MockMapListings.listings
+            let listings = try await APIClient.shared.fetchListings(clerk: Clerk.shared)
             var items: [ListingMapItem] = []
 
             for listing in listings {
@@ -48,9 +49,9 @@ final class ListingsMapViewModel: ObservableObject {
                 let item = ListingMapItem(
                     id: listing.id,
                     title: listing.title,
-                    address: listing.address,
-                    city: listing.city,
-                    rent: listing.rent,
+                    address: listing.address ?? "",
+                    city: listing.city ?? "",
+                    rent: Double(listing.rent) ?? 0,
                     coordinate: coordinate,
                     listing: listing
                 )
@@ -61,13 +62,13 @@ final class ListingsMapViewModel: ObservableObject {
             mapItems = items
 
             if LocationManager.shared.currentLocation != nil {
-                    centerOnUserIfAvailable()
+                centerOnUserIfAvailable()
             } else if let first = items.first {
-                    region = MKCoordinateRegion(
-                        center: first.coordinate,
-                        span: MKCoordinateSpan(latitudeDelta: 0.08, longitudeDelta: 0.08)
-                    )
-                }
+                region = MKCoordinateRegion(
+                    center: first.coordinate,
+                    span: MKCoordinateSpan(latitudeDelta: 0.08, longitudeDelta: 0.08)
+                )
+            }
         } catch {
             print("Failed to load listings for map: \(error)")
         }
