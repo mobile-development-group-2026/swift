@@ -4,7 +4,7 @@ struct StudentHomeView: View {
     @Environment(UserSession.self) private var session
 
     @State private var vm = StudentHomeViewModel()
-    @State private var selectedTab: HomeTab = .roommate
+    @State private var selectedTab: HomeTab = .housing
     @State private var activeNavTab: NavTab = .discover
     @State private var selectedListing: ListingResponse?
 
@@ -90,7 +90,20 @@ struct StudentHomeView: View {
                 topBar
                 tabPicker
 
-                if vm.isLoading {
+                if selectedTab == .roommate {
+                    VStack(spacing: AppSpacing.sm) {
+                        Image(systemName: "person.2")
+                            .font(.system(size: 40))
+                            .foregroundStyle(Color(.neutral, 300))
+                        Text("No roommates available right now")
+                            .font(.body16(.semiBold))
+                            .foregroundStyle(Color(.neutral, 500))
+                            .multilineTextAlignment(.center)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, AppSpacing.xxl)
+                    .padding(.horizontal, AppSpacing.lg)
+                } else if vm.isLoading {
                     ProgressView()
                         .frame(maxWidth: .infinity)
                         .padding(.top, AppSpacing.xxl)
@@ -424,6 +437,7 @@ struct StudentHomeView: View {
 
     private func gridCard(_ listing: ListingResponse) -> some View {
         let rentValue = Int(Double(listing.rent) ?? 0)
+        let favorited = vm.isFavorited(listing.id)
 
         return VStack(alignment: .leading, spacing: 0) {
             // image — padded so all four corners show
@@ -441,6 +455,16 @@ struct StudentHomeView: View {
                         .font(.system(size: 26))
                         .foregroundStyle(Color(.purple, 300))
                 )
+                .overlay(alignment: .topTrailing) {
+                    if favorited {
+                        Image(systemName: "star.fill")
+                            .font(.system(size: 12))
+                            .foregroundStyle(Color(.yellow, 500))
+                            .padding(6)
+                            .background(Circle().fill(.white.opacity(0.9)))
+                            .padding(6)
+                    }
+                }
                 .padding(AppSpacing.sm)
 
             // fixed-height content area — top-aligned so cards are uniform

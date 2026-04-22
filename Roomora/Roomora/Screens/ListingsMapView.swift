@@ -7,10 +7,12 @@
 
 import SwiftUI
 import MapKit
+import ClerkKit
 
 struct ListingsMapView: View {
     @StateObject private var viewModel = ListingsMapViewModel()
     @State private var selectedListing: ListingResponse?
+    @State private var favoritedIds: Set<String> = []
 
     var body: some View {
         ZStack(alignment: .bottom) {
@@ -31,7 +33,10 @@ struct ListingsMapView: View {
             .ignoresSafeArea()
             .task {
                 viewModel.requestLocationAccess()
-                await viewModel.loadListings()
+                async let listings: () = viewModel.loadListings()
+                async let favorites: [ListingResponse] = (try? APIClient.shared.fetchFavorites(clerk: Clerk.shared)) ?? []
+                let (_, favs) = await (listings, favorites)
+                favoritedIds = Set(favs.map { $0.id })
 
                 try? await Task.sleep(nanoseconds: 1_000_000_000)
                 viewModel.centerOnUserIfAvailable()
@@ -47,7 +52,21 @@ struct ListingsMapView: View {
         .navigationTitle("Map")
         .navigationBarTitleDisplayMode(.inline)
         .sheet(item: $selectedListing) { listing in
-            ListingDetailSheet(listing: listing, showApplyButton: true)
+            ListingDetailSheet(
+                listing: listing,
+                showApplyButton: true,
+                initiallyFavorited: favoritedIds.contains(listing.id),
+                onFavoriteToggled: {
+                    let isFav = favoritedIds.contains(listing.id)
+                    if isFav {
+                        favoritedIds.remove(listing.id)
+                        try? await APIClient.shared.removeFavorite(clerk: Clerk.shared, listingId: listing.id)
+                    } else {
+                        favoritedIds.insert(listing.id)
+                        try? await APIClient.shared.addFavorite(clerk: Clerk.shared, listingId: listing.id)
+                    }
+                }
+            )
         }
     }
 }

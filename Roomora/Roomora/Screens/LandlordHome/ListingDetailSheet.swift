@@ -67,33 +67,11 @@ struct ListingDetailSheet: View {
         }
         .background(Color(.neutral, 100))
         .safeAreaInset(edge: .bottom, spacing: 0) {
-            if showApplyButton || onFavoriteToggled != nil {
+            if showApplyButton {
                 VStack(spacing: 0) {
                     Divider()
-                    HStack(spacing: AppSpacing.md) {
-                        // star button — always shown when onFavoriteToggled provided
-                        if onFavoriteToggled != nil {
-                            Button {
-                                favorited.toggle()        // immediate feedback
-                                Task { await onFavoriteToggled?() }
-                            } label: {
-                                Image(systemName: favorited ? "star.fill" : "star")
-                                    .font(.system(size: 22))
-                                    .foregroundStyle(favorited ? Color(.yellow, 500) : Color(.neutral, 400))
-                                    .frame(width: 52, height: 52)
-                                    .background(
-                                        RoundedRectangle(cornerRadius: 14)
-                                            .fill(favorited ? Color(.yellow, 100) : Color(.neutral, 100))
-                                    )
-                            }
-                            .buttonStyle(.plain)
-                        }
-
-                        if showApplyButton {
-                            AppButton(title: "Apply Now", variant: .primary) {
-                                showApply = true
-                            }
-                        }
+                    AppButton(title: "Apply Now", variant: .primary) {
+                        showApply = true
                     }
                     .padding(AppSpacing.lg)
                     .background(.white)
@@ -104,21 +82,34 @@ struct ListingDetailSheet: View {
             ApplyForListingSheet(listing: listing, onSubmitted: onApplicationSubmitted)
         }
         .overlay(alignment: .topTrailing) {
-            Button {
-                dismiss()
-            } label: {
+            Button { dismiss() } label: {
                 Image(systemName: "xmark")
                     .font(.system(size: 14, weight: .bold))
                     .foregroundStyle(Color(.neutral, 600))
                     .frame(width: 32, height: 32)
-                    .background(
-                        Circle()
-                            .fill(.white)
-                            .shadow(color: .black.opacity(0.1), radius: 4, y: 2)
-                    )
+                    .background(Circle().fill(.white).shadow(color: .black.opacity(0.1), radius: 4, y: 2))
             }
             .padding(.trailing, AppSpacing.lg)
             .padding(.top, AppSpacing.md)
+        }
+        .overlay(alignment: .topLeading) {
+            if onFavoriteToggled != nil {
+                Button {
+                    withAnimation(.spring(response: 0.3, dampingFraction: 0.6)) {
+                        favorited.toggle()
+                    }
+                    Task { await onFavoriteToggled?() }
+                } label: {
+                    Image(systemName: favorited ? "star.fill" : "star")
+                        .font(.system(size: 15, weight: .semibold))
+                        .foregroundStyle(favorited ? Color(.yellow, 500) : Color(.neutral, 500))
+                        .frame(width: 32, height: 32)
+                        .background(Circle().fill(.white).shadow(color: .black.opacity(0.1), radius: 4, y: 2))
+                        .scaleEffect(favorited ? 1.15 : 1.0)
+                }
+                .padding(.leading, AppSpacing.lg)
+                .padding(.top, AppSpacing.md)
+            }
         }
     }
 
