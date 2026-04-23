@@ -39,4 +39,33 @@ extension APIClient {
         let data = try await patch(path: "/applications/\(applicationId)", body: ["application": fields], clerk: clerk)
         return try decodeData(ApplicationResponse.self, from: data)
     }
+    
+    // POST /api/v1/proximity_events/bulk
+    func trackProximityEvents(clerk: Clerk, events: [ProximityVisitEvent]) async throws {
+        let payload: [[String: Any]] = events.map { event in
+            [
+                "external_id": event.id,
+                "listing_id": event.listingId,
+                "listing_title": event.listingTitle,
+                "sector": event.sector,
+                "city": event.city,
+                "event_type": "entered_radius",
+                "entered_radius_at": ISO8601DateFormatter.withFractional.string(from: event.enteredRadiusAt),
+                "event_day": event.eventDay,
+                "radius_meters": Int(event.radiusMeters),
+                "latitude": event.latitude,
+                "longitude": event.longitude
+            ]
+        }
+
+        _ = try await post(path: "/proximity_events/bulk", body: ["events": payload], clerk: clerk)
+    }
+
+    // GET /api/v1/landlord_analytics/proximity
+    func fetchLandlordProximityAnalytics(clerk: Clerk) async throws -> ProximityAnalyticsResponse {
+        let data = try await get(path: "/landlord_analytics/proximity", clerk: clerk)
+        return try decodeData(ProximityAnalyticsResponse.self, from: data)
+    }
+
 }
+

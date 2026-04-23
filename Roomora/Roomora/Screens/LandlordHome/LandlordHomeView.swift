@@ -32,19 +32,13 @@ struct LandlordHomeView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            ScrollView {
-                VStack(alignment: .leading, spacing: AppSpacing.lg) {
-                    topBar
-                    statsRow
-                    tabPicker
-
-                    if selectedTab == .listings {
-                        myListings
-                    } else {
-                        recentApplications
-                    }
-                }
-                .padding(.bottom, AppSpacing.lg)
+            switch activeNavTab {
+            case .dashboard:
+                dashboardContent
+            case .messages:
+                messagesPlaceholder
+            case .profile:
+                profileAnalyticsContent
             }
         }
         .safeAreaInset(edge: .bottom, spacing: 0) {
@@ -54,6 +48,12 @@ struct LandlordHomeView: View {
         .task {
             await vm.loadListings(clerk: clerk)
             await vm.loadApplications(clerk: clerk)
+            await vm.loadProximityAnalytics(clerk: clerk)
+        }
+        .onChange(of: activeNavTab) { _, newTab in
+            if newTab == .profile {
+                Task { await vm.loadProximityAnalytics(clerk: clerk) }
+            }
         }
         .sheet(item: $selectedListing) { listing in
             ListingDetailSheet(listing: listing)
@@ -63,6 +63,196 @@ struct LandlordHomeView: View {
                 vm.listings.insert(newListing, at: 0)
             }
             .environment(Clerk.shared)
+        }
+    }
+
+
+    private var dashboardContent: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: AppSpacing.lg) {
+                topBar
+                statsRow
+                tabPicker
+
+                if selectedTab == .listings {
+                    myListings
+                } else {
+                    recentApplications
+                }
+            }
+            .padding(.bottom, AppSpacing.lg)
+        }
+    }
+
+    private var messagesPlaceholder: some View {
+        VStack(spacing: AppSpacing.md) {
+            Spacer()
+            Image(systemName: "bubble.left.and.bubble.right")
+                .font(.system(size: 42))
+                .foregroundStyle(Color(.neutral, 300))
+            Text("Messages")
+                .font(.body18(.semiBold))
+                .foregroundStyle(Color(.neutral, 500))
+            Text("This area can host future landlord-student conversations.")
+                .font(.body14())
+                .foregroundStyle(Color(.neutral, 400))
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, AppSpacing.xl)
+            Spacer()
+        }
+    }
+
+    private var profileAnalyticsContent: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: AppSpacing.lg) {
+                topBar
+
+                VStack(alignment: .leading, spacing: AppSpacing.xs) {
+                    Text("Interest analytics")
+                        .font(.h2(.bold))
+                        .foregroundStyle(Color(.neutral, 900))
+                    Text("These metrics are built from student entries into the 50m radius around your properties.")
+                        .font(.body12())
+                        .foregroundStyle(Color(.neutral, 500))
+                }
+                .padding(.horizontal, AppSpacing.lg)
+
+                HStack(spacing: AppSpacing.sm) {
+                    statCard(icon: "location.magnifyingglass", value: "\(vm.totalProximityVisits)", label: "Visits")
+                    statCard(icon: "map.fill", value: "\(vm.uniqueTrackedSectors)", label: "Sectors")
+                    statCard(icon: "flame.fill", value: vm.peakHourLabel, label: "Peak hour")
+                    statCard(icon: "calendar", value: vm.peakDayLabel, label: "Peak day")
+                }
+                .padding(.horizontal, AppSpacing.lg)
+
+                if vm.isLoadingAnalytics {
+                    ProgressView()
+                        .frame(maxWidth: .infinity)
+                        .padding(.top, AppSpacing.xl)
+                } else if vm.sectorAnalytics.isEmpty {
+                    VStack(spacing: AppSpacing.sm) {
+                        Image(systemName: "chart.xyaxis.line")
+                            .font(.system(size: 40))
+                            .foregroundStyle(Color(.neutral, 300))
+                        Text("No proximity data yet")
+                            .font(.body16(.semiBold))
+                            .foregroundStyle(Color(.neutral, 500))
+                        Text("Once students pass near your listings and the app syncs the events, your sector analytics will appear here.")
+                            .font(.body14())
+                            .foregroundStyle(Color(.neutral, 400))
+                            .multilineTextAlignment(.center)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, AppSpacing.xl)
+                    .padding(.horizontal, AppSpacing.lg)
+                } else {
+                    analyticsSection(
+                        title: "Interest by sector",
+                        subtitle: "Level of interest and average daily traffic by sector.",
+                        content: AnyView(
+                            VStack(spacing: AppSpacing.sm) {
+                                ForEach(vm.sectorAnalytics) { item in
+                                    sectorCard(item)
+                                }
+                            }
+                        )
+                    )
+
+                    analyticsSection(
+                        title: "Daily peak hours",
+                        subtitle: "Moments with the highest pedestrian pass-by around your properties.",
+                        content: AnyView(
+                            VStack(spacing: AppSpacing.sm) {
+                                ForEach(vm.hourlyPeaks) { point in
+                                    metricBarRow(label: String(format: "%02d:00", point.hour), value: point.visits, max: max(vm.hourlyPeaks.map(\.visits).max() ?? 1, 1))
+                                }
+                            }
+                        )
+                    )
+
+                    analyticsSection(
+                        title: "Peak days",
+                        subtitle: "Days with the highest count of entries into the 50m detection radius.",
+                        content: AnyView(
+                            VStack(spacing: AppSpacing.sm) {
+                                ForEach(vm.dailyPeaks) { point in
+                                    metricBarRow(label: point.day, value: point.visits, max: max(vm.dailyPeaks.map(\.visits).max() ?? 1, 1))
+                                }
+                            }
+                        )
+                    )
+                }
+            }
+            .padding(.bottom, AppSpacing.lg)
+        }
+    }
+
+    private func analyticsSection(title: String, subtitle: String, content: AnyView) -> some View {
+        VStack(alignment: .leading, spacing: AppSpacing.md) {
+            VStack(alignment: .leading, spacing: 2) {
+                Text(title)
+                    .font(.body16(.semiBold))
+                    .foregroundStyle(Color(.neutral, 900))
+                Text(subtitle)
+                    .font(.body12())
+                    .foregroundStyle(Color(.neutral, 500))
+            }
+
+            content
+        }
+        .padding(AppSpacing.md)
+        .background(RoundedRectangle(cornerRadius: 16).fill(.white))
+        .padding(.horizontal, AppSpacing.lg)
+    }
+
+    private func sectorCard(_ item: SectorInterestAnalytics) -> some View {
+        HStack(spacing: AppSpacing.md) {
+            VStack(alignment: .leading, spacing: 4) {
+                Text(item.sector)
+                    .font(.body14(.semiBold))
+                    .foregroundStyle(Color(.neutral, 900))
+                Text("Interest: \(item.interestLevel)")
+                    .font(.body12())
+                    .foregroundStyle(Color(.purple, 500))
+            }
+            Spacer()
+            VStack(alignment: .trailing, spacing: 4) {
+                Text("\(item.visitCount) passes")
+                    .font(.body12(.semiBold))
+                    .foregroundStyle(Color(.neutral, 700))
+                Text(String(format: "%.1f avg/day · %d unique", item.averageDailyTraffic, item.uniqueVisitors))
+                    .font(.body10())
+                    .foregroundStyle(Color(.neutral, 500))
+            }
+        }
+        .padding(AppSpacing.sm)
+        .background(RoundedRectangle(cornerRadius: 12).fill(Color(.neutral, 100)))
+    }
+
+    private func metricBarRow(label: String, value: Int, max: Int) -> some View {
+        VStack(alignment: .leading, spacing: AppSpacing.xxs) {
+            HStack {
+                Text(label)
+                    .font(.body12(.semiBold))
+                    .foregroundStyle(Color(.neutral, 700))
+                Spacer()
+                Text("\(value)")
+                    .font(.body10(.bold))
+                    .foregroundStyle(Color(.neutral, 500))
+            }
+
+            GeometryReader { proxy in
+                let width = max > 0 ? proxy.size.width * CGFloat(Double(value) / Double(max)) : 0
+                ZStack(alignment: .leading) {
+                    RoundedRectangle(cornerRadius: 8)
+                        .fill(Color(.neutral, 200))
+                        .frame(height: 10)
+                    RoundedRectangle(cornerRadius: 8)
+                        .fill(Color(.purple, 500))
+                        .frame(width: width, height: 10)
+                }
+            }
+            .frame(height: 10)
         }
     }
 

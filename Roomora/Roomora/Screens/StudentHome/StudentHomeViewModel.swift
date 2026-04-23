@@ -10,11 +10,15 @@ class StudentHomeViewModel {
     var isLoading = false
     var isLoadingApplications = false
     var isLoadingFavorites = false
-
+    var proximityStatusText = "Idle"
+    var pendingProximityEvents = 0
+    
     func loadListings() async {
         isLoading = true
         do {
             listings = try await APIClient.shared.fetchListings(clerk: Clerk.shared)
+            StudentProximityTracker.shared.configure(with: listings)
+            StudentProximityTracker.shared.start(clerk: Clerk.shared)
         } catch {
             // non-fatal
         }
@@ -42,6 +46,12 @@ class StudentHomeViewModel {
         isLoadingFavorites = false
     }
 
+    
+    func syncProximityTrackingState() {
+        proximityStatusText = StudentProximityTracker.shared.status.label
+        pendingProximityEvents = StudentProximityTracker.shared.pendingEventsCount
+    }
+    
     func isFavorited(_ listingId: String) -> Bool {
         favoritedIds.contains(listingId)
     }

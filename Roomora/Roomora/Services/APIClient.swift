@@ -100,3 +100,12 @@ extension JSONDecoder {
         return decoder
     }()
 }
+
+
+extension ISO8601DateFormatter {
+    static let withFractional: ISO8601DateFormatter = {
+        let formatter = ISO8601DateFormatter()
+        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        return formatter
+    }()
+}
