@@ -8,10 +8,9 @@
 import Foundation
 import CoreLocation
 
-final class GeocodingService {
+final class GeocodingService: Sendable {
     static let shared = GeocodingService()
 
-    private let geocoder = CLGeocoder()
     private init() {}
 
     func coordinate(for listing: Listing) async -> CLLocationCoordinate2D? {
@@ -22,6 +21,7 @@ final class GeocodingService {
         let fullAddress = "\(listing.address), \(listing.city)"
 
         do {
+            let geocoder = CLGeocoder()
             let placemarks = try await geocoder.geocodeAddressString(fullAddress)
             return placemarks.first?.location?.coordinate
         } catch {
@@ -41,6 +41,7 @@ final class GeocodingService {
         let fullAddress = parts.joined(separator: ", ")
 
         do {
+            let geocoder = CLGeocoder()
             let placemarks = try await geocoder.geocodeAddressString(fullAddress)
             return placemarks.first?.location?.coordinate
         } catch {
