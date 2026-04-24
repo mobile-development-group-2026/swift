@@ -479,32 +479,34 @@ struct StudentHomeView: View {
         let favorited = vm.isFavorited(listing.id)
 
         return VStack(alignment: .leading, spacing: 0) {
-            // image — padded so all four corners show
-            RoundedRectangle(cornerRadius: 12)
-                .fill(
-                    LinearGradient(
-                        colors: [Color(.purple, 100), Color(.neutral, 200)],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    )
-                )
-                .frame(height: 110)
-                .overlay(
-                    Image(systemName: iconForPropertyType(listing.propertyType))
-                        .font(.system(size: 26))
-                        .foregroundStyle(Color(.purple, 300))
-                )
-                .overlay(alignment: .topTrailing) {
-                    if favorited {
-                        Image(systemName: "star.fill")
-                            .font(.system(size: 12))
-                            .foregroundStyle(Color(.yellow, 500))
-                            .padding(6)
-                            .background(Circle().fill(.white.opacity(0.9)))
-                            .padding(6)
+            // cover image
+            ZStack(alignment: .topTrailing) {
+                if let urlString = listing.coverPhotoUrl, let url = URL(string: urlString) {
+                    AsyncImage(url: url) { phase in
+                        if let image = phase.image {
+                            image.resizable().scaledToFill()
+                        } else {
+                            gradientCardPlaceholder(listing.propertyType)
+                        }
                     }
+                    .frame(height: 110)
+                    .clipShape(RoundedRectangle(cornerRadius: 12))
+                } else {
+                    gradientCardPlaceholder(listing.propertyType)
+                        .frame(height: 110)
+                        .clipShape(RoundedRectangle(cornerRadius: 12))
                 }
-                .padding(AppSpacing.sm)
+
+                if favorited {
+                    Image(systemName: "star.fill")
+                        .font(.system(size: 12))
+                        .foregroundStyle(Color(.yellow, 500))
+                        .padding(6)
+                        .background(Circle().fill(.white.opacity(0.9)))
+                        .padding(6)
+                }
+            }
+            .padding(AppSpacing.sm)
 
             // fixed-height content area — top-aligned so cards are uniform
             VStack(alignment: .leading, spacing: AppSpacing.xs) {
@@ -578,6 +580,20 @@ struct StudentHomeView: View {
     }
 
     // MARK: - Helpers
+
+    @ViewBuilder
+    private func gradientCardPlaceholder(_ propertyType: String?) -> some View {
+        LinearGradient(
+            colors: [Color(.purple, 100), Color(.neutral, 200)],
+            startPoint: .topLeading,
+            endPoint: .bottomTrailing
+        )
+        .overlay(
+            Image(systemName: iconForPropertyType(propertyType))
+                .font(.system(size: 26))
+                .foregroundStyle(Color(.purple, 300))
+        )
+    }
 
     private func iconForPropertyType(_ type: String?) -> String {
         switch type {

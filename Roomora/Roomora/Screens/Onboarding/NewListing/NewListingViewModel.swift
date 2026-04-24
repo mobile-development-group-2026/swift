@@ -1,4 +1,5 @@
 import SwiftUI
+import PhotosUI
 
 @Observable
 class NewListingViewModel {
@@ -11,6 +12,10 @@ class NewListingViewModel {
     var selectedAmenities: Set<String> = []
     var selectedRules: Set<String> = []
     var description = ""
+
+    // Photos
+    var selectedPhotos: [PhotosPickerItem] = []
+    var isUploadingPhotos = false
 
     // Location
     var city = ""

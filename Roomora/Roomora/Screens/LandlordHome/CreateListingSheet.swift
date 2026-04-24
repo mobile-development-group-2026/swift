@@ -1,5 +1,6 @@
 import SwiftUI
 import ClerkKit
+import PhotosUI
 
 struct CreateListingSheet: View {
     @Environment(Clerk.self) private var clerk
@@ -22,7 +23,9 @@ struct CreateListingSheet: View {
                                 ErrorMessage(message: error)
                             }
                             AppButton(
-                                title: isLoading ? "Posting…" : "Post Listing",
+                                title: isLoading
+                                    ? (vm.isUploadingPhotos ? "Uploading photos…" : "Posting…")
+                                    : "Post Listing",
                                 variant: .primary
                             ) {
                                 Task { await submit() }
@@ -83,6 +86,23 @@ struct CreateListingSheet: View {
 
         do {
             let listing = try await APIClient.shared.createListing(clerk: clerk, fields: fields)
+
+            // Upload selected photos sequentially (failures are non-fatal)
+            if !vm.selectedPhotos.isEmpty {
+                vm.isUploadingPhotos = true
+                for item in vm.selectedPhotos {
+                    guard let data = try? await item.loadTransferable(type: Data.self) else { continue }
+                    if let photoUrl = try? await ImageUploadService.upload(data, folder: "listings") {
+                        try? await APIClient.shared.postListingPhoto(
+                            clerk: clerk,
+                            listingId: listing.id,
+                            photoUrl: photoUrl
+                        )
+                    }
+                }
+                vm.isUploadingPhotos = false
+            }
+
             onCreated(listing)
             dismiss()
         } catch {

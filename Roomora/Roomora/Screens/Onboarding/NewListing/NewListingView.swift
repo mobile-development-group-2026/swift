@@ -4,8 +4,7 @@ import PhotosUI
 struct NewListingView: View {
     @Bindable var vm: NewListingViewModel
 
-    @State private var coverPhoto: Image?
-    @State private var photoPickerItem: PhotosPickerItem?
+    @State private var photoImages: [Image] = []
 
     var body: some View {
         ScrollView {
@@ -46,73 +45,74 @@ struct NewListingView: View {
         VStack(alignment: .leading, spacing: AppSpacing.sm) {
             sectionLabel("PHOTOS")
 
-            HStack(spacing: AppSpacing.md) {
-                // cover photo
-                PhotosPicker(selection: $photoPickerItem, matching: .images) {
-                    ZStack {
-                        if let photo = coverPhoto {
-                            photo
-                                .resizable()
-                                .scaledToFill()
-                                .frame(width: 140, height: 140)
-                                .clipShape(RoundedRectangle(cornerRadius: 12))
-                                .overlay(alignment: .topTrailing) {
-                                    Text("Edit")
-                                        .font(.body10(.semiBold))
-                                        .foregroundStyle(.white)
-                                        .padding(.horizontal, AppSpacing.xs)
-                                        .padding(.vertical, AppSpacing.xxxs)
-                                        .background(Capsule().fill(Color(.purple, 500)))
-                                        .padding(AppSpacing.xs)
-                                }
-                        } else {
-                            RoundedRectangle(cornerRadius: 12)
-                                .fill(Color(.neutral, 200))
-                                .frame(width: 140, height: 140)
-                                .overlay(
-                                    VStack(spacing: AppSpacing.xs) {
-                                        Image(systemName: "photo.fill")
-                                            .font(.system(size: 28))
-                                            .foregroundStyle(Color(.neutral, 400))
-                                        Text("Cover photo")
-                                            .font(.body12(.medium))
-                                            .foregroundStyle(Color(.neutral, 500))
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: AppSpacing.md) {
+                    // Multi-photo picker — first item = cover
+                    PhotosPicker(
+                        selection: $vm.selectedPhotos,
+                        maxSelectionCount: 5,
+                        matching: .images
+                    ) {
+                        ZStack {
+                            if let first = photoImages.first {
+                                first
+                                    .resizable()
+                                    .scaledToFill()
+                                    .frame(width: 140, height: 140)
+                                    .clipShape(RoundedRectangle(cornerRadius: 12))
+                                    .overlay(alignment: .topTrailing) {
+                                        Text("Edit")
+                                            .font(.body10(.semiBold))
+                                            .foregroundStyle(.white)
+                                            .padding(.horizontal, AppSpacing.xs)
+                                            .padding(.vertical, AppSpacing.xxxs)
+                                            .background(Capsule().fill(Color(.purple, 500)))
+                                            .padding(AppSpacing.xs)
                                     }
-                                )
+                            } else {
+                                RoundedRectangle(cornerRadius: 12)
+                                    .fill(Color(.neutral, 200))
+                                    .frame(width: 140, height: 140)
+                                    .overlay(
+                                        VStack(spacing: AppSpacing.xs) {
+                                            Image(systemName: "photo.fill")
+                                                .font(.system(size: 28))
+                                                .foregroundStyle(Color(.neutral, 400))
+                                            Text("Cover photo")
+                                                .font(.body12(.medium))
+                                                .foregroundStyle(Color(.neutral, 500))
+                                        }
+                                    )
+                            }
                         }
                     }
-                }
-                .buttonStyle(.plain)
+                    .buttonStyle(.plain)
 
-                // add more button
-                Button {} label: {
-                    RoundedRectangle(cornerRadius: 12)
-                        .strokeBorder(style: StrokeStyle(lineWidth: 1.5, dash: [6]))
-                        .foregroundStyle(Color(.neutral, 400))
-                        .frame(width: 80, height: 140)
-                        .overlay(
-                            VStack(spacing: AppSpacing.xs) {
-                                Image(systemName: "plus")
-                                    .font(.system(size: 22, weight: .medium))
-                                    .foregroundStyle(Color(.neutral, 500))
-                            }
-                        )
+                    // Additional thumbnails (photos 2–5)
+                    ForEach(Array(photoImages.dropFirst().enumerated()), id: \.offset) { _, image in
+                        image
+                            .resizable()
+                            .scaledToFill()
+                            .frame(width: 80, height: 140)
+                            .clipShape(RoundedRectangle(cornerRadius: 12))
+                    }
                 }
-                .buttonStyle(.plain)
-
-                Spacer()
             }
 
-            Text("First photo is the cover")
+            Text("First photo is the cover · up to 5")
                 .font(.body10())
                 .foregroundStyle(Color(.neutral, 500))
         }
-        .onChange(of: photoPickerItem) {
+        .onChange(of: vm.selectedPhotos) {
             Task {
-                if let data = try? await photoPickerItem?.loadTransferable(type: Data.self),
-                   let uiImage = UIImage(data: data) {
-                    coverPhoto = Image(uiImage: uiImage)
+                var images: [Image] = []
+                for item in vm.selectedPhotos {
+                    if let data = try? await item.loadTransferable(type: Data.self),
+                       let uiImage = UIImage(data: data) {
+                        images.append(Image(uiImage: uiImage))
+                    }
                 }
+                photoImages = images
             }
         }
     }

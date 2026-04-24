@@ -63,6 +63,12 @@ struct LandlordProfileResponse: Codable {
     let hobbies: [String]?
 }
 
+struct ListingPhotoResponse: Codable, Hashable {
+    let id: String
+    let photoUrl: String
+    let position: Int
+}
+
 struct ListingResponse: Codable, Identifiable, Hashable {
     let id: String
     let userId: String?
@@ -87,6 +93,8 @@ struct ListingResponse: Codable, Identifiable, Hashable {
     let status: String
     let favoritesCount: Int?
     let viewsCount: Int?
+    let coverPhotoUrl: String?
+    let photos: [ListingPhotoResponse]?
     let createdAt: String?
     let updatedAt: String?
 }

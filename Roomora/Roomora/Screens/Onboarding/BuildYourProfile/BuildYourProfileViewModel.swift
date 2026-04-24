@@ -12,6 +12,7 @@ class BuildYourProfileViewModel {
     let maxHobbies = 5
     var profilePhoto: Image?
     var photoPickerItem: PhotosPickerItem?
+    var photoData: Data?
 
     static let birthYears = Array(1970...Calendar.current.component(.year, from: Date()))
     static let gradYears = Array(1970...Calendar.current.component(.year, from: Date()) + 5)
@@ -65,9 +66,10 @@ class BuildYourProfileViewModel {
     }
 
     func savePhoto(data: Data) {
+        photoData = data // store raw bytes for Cloudinary upload later
         guard let uiImage = UIImage(data: data) else { return }
         profilePhoto = Image(uiImage: uiImage)
-        // save compressed JPEG to disk
+        // save compressed JPEG to disk for local fallback
         if let jpeg = uiImage.jpegData(compressionQuality: 0.8) {
             try? jpeg.write(to: Self.photoURL)
         }

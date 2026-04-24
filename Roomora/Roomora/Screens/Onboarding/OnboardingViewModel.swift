@@ -1,5 +1,6 @@
 import SwiftUI
 import ClerkKit
+import PhotosUI
 
 @Observable
 class OnboardingViewModel {
@@ -133,9 +134,16 @@ class OnboardingViewModel {
                 return
             }
 
+            // Upload profile photo and mark onboarded in one call
+            var finalFields: [String: Any] = ["onboarded": true]
+            if let data = buildProfile.photoData,
+               let avatarUrl = try? await ImageUploadService.upload(data, folder: "profiles") {
+                finalFields["avatar_url"] = avatarUrl
+            }
+
             let profile = try await APIClient.shared.updateProfile(
                 clerk: clerk,
-                fields: ["onboarded": true]
+                fields: finalFields
             )
             completedProfile = profile
             showCelebration = true
@@ -237,7 +245,14 @@ class OnboardingViewModel {
         }
 
         do {
-            _ = try await APIClient.shared.createListing(clerk: clerk, fields: fields)
+            let listing = try await APIClient.shared.createListing(clerk: clerk, fields: fields)
+            // Upload any selected photos sequentially (non-blocking failure)
+            for item in nl.selectedPhotos {
+                guard let data = try? await item.loadTransferable(type: Data.self) else { continue }
+                if let photoUrl = try? await ImageUploadService.upload(data, folder: "listings") {
+                    try? await APIClient.shared.postListingPhoto(clerk: clerk, listingId: listing.id, photoUrl: photoUrl)
+                }
+            }
         } catch {
             print("saveNewListing failed: \(error)")
             errorMessage = error.localizedDescription

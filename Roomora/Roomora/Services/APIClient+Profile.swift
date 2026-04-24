@@ -42,4 +42,22 @@ extension APIClient {
         let data = try await patch(path: "/profile/landlord", body: ["landlord_profile": fields], clerk: clerk)
         return try decodeData(LandlordProfileResponse.self, from: data)
     }
+
+    func fetchListing(id: String, clerk: Clerk) async throws -> ListingResponse {
+        let data = try await get(path: "/listings/\(id)", clerk: clerk)
+        return try decodeData(ListingResponse.self, from: data)
+    }
+
+    func postListingPhoto(clerk: Clerk, listingId: String, photoUrl: String) async throws -> ListingPhotoResponse {
+        let data = try await post(
+            path: "/listings/\(listingId)/photos",
+            body: ["photo": ["photo_url": photoUrl]],
+            clerk: clerk
+        )
+        return try decodeData(ListingPhotoResponse.self, from: data)
+    }
+
+    func deleteListingPhoto(clerk: Clerk, listingId: String, photoId: String) async throws {
+        _ = try await delete(path: "/listings/\(listingId)/photos/\(photoId)", clerk: clerk)
+    }
 }

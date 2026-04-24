@@ -56,7 +56,7 @@ struct LandlordHomeView: View {
             }
         }
         .sheet(item: $selectedListing) { listing in
-            ListingDetailSheet(listing: listing)
+            ListingDetailSheet(listing: listing, canManagePhotos: true)
         }
         .fullScreenCover(isPresented: $showCreateListing) {
             CreateListingSheet { newListing in
@@ -416,20 +416,21 @@ struct LandlordHomeView: View {
 
         return HStack(spacing: AppSpacing.md) {
             // thumbnail
-            RoundedRectangle(cornerRadius: 12)
-                .fill(
-                    LinearGradient(
-                        colors: [Color(.purple, 200), Color(.purple, 100)],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    )
-                )
-                .frame(width: 80, height: 80)
-                .overlay(
-                    Image(systemName: icon)
-                        .font(.system(size: 24))
-                        .foregroundStyle(Color(.purple, 400))
-                )
+            Group {
+                if let urlString = listing.coverPhotoUrl, let url = URL(string: urlString) {
+                    AsyncImage(url: url) { phase in
+                        if let image = phase.image {
+                            image.resizable().scaledToFill()
+                        } else {
+                            gradientThumb(icon: icon)
+                        }
+                    }
+                } else {
+                    gradientThumb(icon: icon)
+                }
+            }
+            .frame(width: 80, height: 80)
+            .clipShape(RoundedRectangle(cornerRadius: 12))
 
             VStack(alignment: .leading, spacing: AppSpacing.xs) {
                 // status badge
@@ -482,6 +483,20 @@ struct LandlordHomeView: View {
         )
         .shadow(color: .black.opacity(0.04), radius: 8, y: 2)
         .padding(.horizontal, AppSpacing.lg)
+    }
+
+    @ViewBuilder
+    private func gradientThumb(icon: String) -> some View {
+        LinearGradient(
+            colors: [Color(.purple, 200), Color(.purple, 100)],
+            startPoint: .topLeading,
+            endPoint: .bottomTrailing
+        )
+        .overlay(
+            Image(systemName: icon)
+                .font(.system(size: 24))
+                .foregroundStyle(Color(.purple, 400))
+        )
     }
 
     private func iconForPropertyType(_ type: String?) -> String {

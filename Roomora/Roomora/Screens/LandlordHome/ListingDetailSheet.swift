@@ -1,29 +1,42 @@
 import SwiftUI
+import PhotosUI
+import ClerkKit
+
 
 struct ListingDetailSheet: View {
     let listing: ListingResponse
     var showApplyButton: Bool = false
     var initiallyFavorited: Bool = false
+    var canManagePhotos: Bool = false
     var onApplicationSubmitted: (() -> Void)? = nil
     var onFavoriteToggled: (() async -> Void)? = nil
 
     @Environment(\.dismiss) private var dismiss
+    @Environment(Clerk.self) private var clerk
+
     @State private var showApply = false
     @State private var favorited: Bool = false
+    @State private var currentPhotos: [ListingPhotoResponse]
+    @State private var photoPickerItems: [PhotosPickerItem] = []
+    @State private var isUploadingPhoto = false
+    @State private var deletingPhotoId: String? = nil
 
     init(
         listing: ListingResponse,
         showApplyButton: Bool = false,
         initiallyFavorited: Bool = false,
+        canManagePhotos: Bool = false,
         onApplicationSubmitted: (() -> Void)? = nil,
         onFavoriteToggled: (() async -> Void)? = nil
     ) {
         self.listing = listing
         self.showApplyButton = showApplyButton
         self.initiallyFavorited = initiallyFavorited
+        self.canManagePhotos = canManagePhotos
         self.onApplicationSubmitted = onApplicationSubmitted
         self.onFavoriteToggled = onFavoriteToggled
         _favorited = State(initialValue: initiallyFavorited)
+        _currentPhotos = State(initialValue: listing.photos ?? [])
     }
 
     private var rentValue: Int { Int(Double(listing.rent) ?? 0) }
@@ -45,6 +58,9 @@ struct ListingDetailSheet: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 0) {
                 header
+                if canManagePhotos {
+                    managePhotosSection
+                }
                 statusAndTitle
                 priceSection
                 if listing.propertyType != nil || listing.leaseTermMonths != nil || listing.availableDate != nil {
@@ -66,7 +82,13 @@ struct ListingDetailSheet: View {
             .padding(.bottom, AppSpacing.xxl)
         }
         .background(Color(.neutral, 100))
-        .task { await APIClient.shared.trackView(listingId: listing.id) }
+        .task {
+            await APIClient.shared.trackView(listingId: listing.id)
+            // Fetch full listing so we always have the photos array
+            if let full = try? await APIClient.shared.fetchListing(id: listing.id, clerk: clerk) {
+                currentPhotos = full.photos ?? []
+            }
+        }
         .safeAreaInset(edge: .bottom, spacing: 0) {
             if showApplyButton {
                 VStack(spacing: 0) {
@@ -116,20 +138,67 @@ struct ListingDetailSheet: View {
 
     // MARK: - Header
 
-    private var header: some View {
-        ZStack(alignment: .bottomLeading) {
-            LinearGradient(
-                colors: [Color(.purple, 500), Color(.purple, 300), Color(.purple, 100)],
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
-            .frame(height: 180)
-            .overlay(
-                Image(systemName: iconForPropertyType(listing.propertyType))
-                    .font(.system(size: 64, weight: .thin))
-                    .foregroundStyle(.white.opacity(0.25))
-            )
+    private var photoUrls: [URL] {
+        if !currentPhotos.isEmpty {
+            return currentPhotos.compactMap { URL(string: $0.photoUrl) }
         }
+        if let cover = listing.coverPhotoUrl, let url = URL(string: cover) {
+            return [url]
+        }
+        return []
+    }
+
+    private var header: some View {
+        Group {
+            if photoUrls.isEmpty {
+                gradientPlaceholder
+            } else if photoUrls.count == 1 {
+                AsyncImage(url: photoUrls[0]) { phase in
+                    if let image = phase.image {
+                        image
+                            .resizable()
+                            .scaledToFit()
+                    } else {
+                        gradientPlaceholder
+                    }
+                }
+                .frame(maxWidth: .infinity)
+                .background(Color.black)
+            } else {
+                TabView {
+                    ForEach(photoUrls, id: \.absoluteString) { url in
+                        AsyncImage(url: url) { phase in
+                            if let image = phase.image {
+                                image
+                                    .resizable()
+                                    .scaledToFit()
+                                    .frame(maxWidth: .infinity)
+                            } else {
+                                gradientPlaceholder
+                            }
+                        }
+                    }
+                }
+                .tabViewStyle(.page(indexDisplayMode: .always))
+                .background(Color.black)
+                .frame(height: 300)
+            }
+        }
+    }
+
+    private var gradientPlaceholder: some View {
+        LinearGradient(
+            colors: [Color(.purple, 500), Color(.purple, 300), Color(.purple, 100)],
+            startPoint: .topLeading,
+            endPoint: .bottomTrailing
+        )
+        .frame(maxWidth: .infinity)
+        .frame(height: 220)
+        .overlay(
+            Image(systemName: iconForPropertyType(listing.propertyType))
+                .font(.system(size: 64, weight: .thin))
+                .foregroundStyle(.white.opacity(0.25))
+        )
     }
 
     // MARK: - Status & Title
@@ -326,6 +395,117 @@ struct ListingDetailSheet: View {
             }
         }
         .padding(.horizontal, AppSpacing.lg)
+    }
+
+    // MARK: - Manage Photos (owner only)
+
+    private var managePhotosSection: some View {
+        VStack(alignment: .leading, spacing: AppSpacing.sm) {
+            HStack {
+                Text("PHOTOS")
+                    .font(.body10(.semiBold))
+                    .foregroundStyle(Color(.neutral, 500))
+                Spacer()
+                if isUploadingPhoto {
+                    ProgressView()
+                        .scaleEffect(0.75)
+                } else if currentPhotos.count < 5 {
+                    PhotosPicker(
+                        selection: $photoPickerItems,
+                        maxSelectionCount: 5 - currentPhotos.count,
+                        matching: .images
+                    ) {
+                        Label("Add", systemImage: "plus")
+                            .font(.body12(.semiBold))
+                            .foregroundStyle(Color(.purple, 500))
+                    }
+                    .onChange(of: photoPickerItems) {
+                        guard !photoPickerItems.isEmpty else { return }
+                        Task { await uploadNewPhotos() }
+                    }
+                } else {
+                    Text("5/5")
+                        .font(.body12(.semiBold))
+                        .foregroundStyle(Color(.neutral, 400))
+                }
+            }
+
+            if currentPhotos.isEmpty {
+                Text("No photos yet — tap Add to upload some.")
+                    .font(.body12())
+                    .foregroundStyle(Color(.neutral, 400))
+                Divider()
+            } else {
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: AppSpacing.sm) {
+                        ForEach(currentPhotos, id: \.id) { photo in
+                            ZStack(alignment: .topTrailing) {
+                                AsyncImage(url: URL(string: photo.photoUrl)) { phase in
+                                    if let image = phase.image {
+                                        image.resizable().scaledToFill()
+                                    } else {
+                                        Color(.neutral, 200)
+                                    }
+                                }
+                                .frame(width: 88, height: 88)
+                                .clipShape(RoundedRectangle(cornerRadius: 10))
+
+                                if deletingPhotoId == photo.id {
+                                    ProgressView()
+                                        .scaleEffect(0.7)
+                                        .frame(width: 24, height: 24)
+                                        .background(Circle().fill(.white.opacity(0.8)))
+                                        .padding(4)
+                                } else {
+                                    Button {
+                                        Task { await deletePhoto(photo) }
+                                    } label: {
+                                        Image(systemName: "xmark.circle.fill")
+                                            .font(.system(size: 20))
+                                            .foregroundStyle(.white)
+                                            .background(Circle().fill(.black.opacity(0.55)).padding(2))
+                                    }
+                                    .padding(4)
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            Divider()
+                .padding(.top, AppSpacing.xs)
+        }
+        .padding(.horizontal, AppSpacing.lg)
+        .padding(.vertical, AppSpacing.md)
+        .background(.white)
+    }
+
+    private func uploadNewPhotos() async {
+        isUploadingPhoto = true
+        for item in photoPickerItems {
+            guard let data = try? await item.loadTransferable(type: Data.self),
+                  let cloudUrl = try? await ImageUploadService.upload(data, folder: "listings"),
+                  let photo = try? await APIClient.shared.postListingPhoto(
+                      clerk: clerk,
+                      listingId: listing.id,
+                      photoUrl: cloudUrl
+                  )
+            else { continue }
+            currentPhotos.append(photo)
+        }
+        photoPickerItems = []
+        isUploadingPhoto = false
+    }
+
+    private func deletePhoto(_ photo: ListingPhotoResponse) async {
+        deletingPhotoId = photo.id
+        try? await APIClient.shared.deleteListingPhoto(
+            clerk: clerk,
+            listingId: listing.id,
+            photoId: photo.id
+        )
+        currentPhotos.removeAll { $0.id == photo.id }
+        deletingPhotoId = nil
     }
 
     // MARK: - Helpers
