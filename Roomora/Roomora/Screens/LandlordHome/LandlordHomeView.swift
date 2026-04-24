@@ -55,7 +55,9 @@ struct LandlordHomeView: View {
                 Task { await vm.loadProximityAnalytics(clerk: clerk) }
             }
         }
-        .sheet(item: $selectedListing) { listing in
+        .sheet(item: $selectedListing, onDismiss: {
+            Task { await vm.loadListings(clerk: clerk) }
+        }) { listing in
             ListingDetailSheet(listing: listing, canManagePhotos: true)
         }
         .fullScreenCover(isPresented: $showCreateListing) {

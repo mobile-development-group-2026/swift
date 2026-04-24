@@ -17,6 +17,7 @@ struct ListingDetailSheet: View {
     @State private var showApply = false
     @State private var favorited: Bool = false
     @State private var currentPhotos: [ListingPhotoResponse]
+    @State private var selectedPhotoIndex: Int = 0
     @State private var photoPickerItems: [PhotosPickerItem] = []
     @State private var isUploadingPhoto = false
     @State private var deletingPhotoId: String? = nil
@@ -152,25 +153,18 @@ struct ListingDetailSheet: View {
         Group {
             if photoUrls.isEmpty {
                 gradientPlaceholder
-            } else if photoUrls.count == 1 {
-                CachedAsyncImage(url: photoUrls[0]) { image in
-                    image.resizable().scaledToFit()
-                } placeholder: {
-                    gradientPlaceholder
-                }
-                .frame(maxWidth: .infinity)
-                .background(Color.black)
             } else {
-                TabView {
-                    ForEach(photoUrls, id: \.absoluteString) { url in
+                TabView(selection: $selectedPhotoIndex) {
+                    ForEach(Array(photoUrls.enumerated()), id: \.offset) { index, url in
                         CachedAsyncImage(url: url) { image in
                             image.resizable().scaledToFit().frame(maxWidth: .infinity)
                         } placeholder: {
                             gradientPlaceholder
                         }
+                        .tag(index)
                     }
                 }
-                .tabViewStyle(.page(indexDisplayMode: .always))
+                .tabViewStyle(.page(indexDisplayMode: .automatic))
                 .background(Color.black)
                 .frame(height: 300)
             }
@@ -429,7 +423,7 @@ struct ListingDetailSheet: View {
             } else {
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: AppSpacing.sm) {
-                        ForEach(currentPhotos, id: \.id) { photo in
+                        ForEach(Array(currentPhotos.enumerated()), id: \.element.id) { index, photo in
                             ZStack(alignment: .topTrailing) {
                                 CachedAsyncImage(url: URL(string: photo.photoUrl)) { image in
                                     image.resizable().scaledToFill()
