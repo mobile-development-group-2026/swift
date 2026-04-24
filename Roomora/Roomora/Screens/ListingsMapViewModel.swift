@@ -41,22 +41,33 @@ final class ListingsMapViewModel: ObservableObject {
 
         do {
             let listings = try await APIClient.shared.fetchListings(clerk: Clerk.shared)
-            var items: [ListingMapItem] = []
 
-            for listing in listings {
-                guard let coordinate = await GeocodingService.shared.coordinate(for: listing) else { continue }
+            let items = await withTaskGroup(of: ListingMapItem?.self, returning: [ListingMapItem].self) { group in
+                for listing in listings {
+                    group.addTask {
+                        guard let coordinate = await GeocodingService.shared.coordinate(for: listing) else {
+                            return nil
+                        }
 
-                let item = ListingMapItem(
-                    id: listing.id,
-                    title: listing.title,
-                    address: listing.address ?? "",
-                    city: listing.city ?? "",
-                    rent: Double(listing.rent) ?? 0,
-                    coordinate: coordinate,
-                    listing: listing
-                )
+                        return ListingMapItem(
+                            id: listing.id,
+                            title: listing.title,
+                            address: listing.address ?? "",
+                            city: listing.city ?? "",
+                            rent: Double(listing.rent) ?? 0,
+                            coordinate: coordinate,
+                            listing: listing
+                        )
+                    }
+                }
 
-                items.append(item)
+                var results: [ListingMapItem] = []
+                for await item in group {
+                    if let item {
+                        results.append(item)
+                    }
+                }
+                return results
             }
 
             mapItems = items
