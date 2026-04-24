@@ -482,12 +482,10 @@ struct StudentHomeView: View {
             // cover image
             ZStack(alignment: .topTrailing) {
                 if let urlString = listing.coverPhotoUrl, let url = URL(string: urlString) {
-                    AsyncImage(url: url) { phase in
-                        if let image = phase.image {
-                            image.resizable().scaledToFill()
-                        } else {
-                            gradientCardPlaceholder(listing.propertyType)
-                        }
+                    CachedAsyncImage(url: url) { image in
+                        image.resizable().scaledToFill()
+                    } placeholder: {
+                        gradientCardPlaceholder(listing.propertyType)
                     }
                     .frame(height: 110)
                     .clipShape(RoundedRectangle(cornerRadius: 12))

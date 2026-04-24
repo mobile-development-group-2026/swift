@@ -418,12 +418,10 @@ struct LandlordHomeView: View {
             // thumbnail
             Group {
                 if let urlString = listing.coverPhotoUrl, let url = URL(string: urlString) {
-                    AsyncImage(url: url) { phase in
-                        if let image = phase.image {
-                            image.resizable().scaledToFill()
-                        } else {
-                            gradientThumb(icon: icon)
-                        }
+                    CachedAsyncImage(url: url) { image in
+                        image.resizable().scaledToFill()
+                    } placeholder: {
+                        gradientThumb(icon: icon)
                     }
                 } else {
                     gradientThumb(icon: icon)

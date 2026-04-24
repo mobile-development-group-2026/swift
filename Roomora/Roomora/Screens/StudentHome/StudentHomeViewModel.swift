@@ -14,13 +14,24 @@ class StudentHomeViewModel {
     var pendingProximityEvents = 0
     
     func loadListings() async {
-        isLoading = true
+        // Show cached listings immediately — no spinner on returning visits
+        if listings.isEmpty,
+           let cached = CacheService.load([ListingResponse].self, key: "listings") {
+            listings = cached
+            // Prefetch cover photos into NSCache so grid renders without placeholders
+            let urls = cached.compactMap { $0.coverPhotoUrl }.compactMap { URL(string: $0) }
+            ImageMemoryCache.shared.prefetch(urls)
+        }
+
+        isLoading = listings.isEmpty // spinner only when there's truly nothing to show
         do {
-            listings = try await APIClient.shared.fetchListings(clerk: Clerk.shared)
+            let fresh = try await APIClient.shared.fetchListings(clerk: Clerk.shared)
+            listings = fresh
+            CacheService.save(Array(fresh.prefix(50)), key: "listings")
             StudentProximityTracker.shared.configure(with: listings)
             StudentProximityTracker.shared.start(clerk: Clerk.shared)
         } catch {
-            // non-fatal
+            // non-fatal — cached data stays visible
         }
         isLoading = false
     }

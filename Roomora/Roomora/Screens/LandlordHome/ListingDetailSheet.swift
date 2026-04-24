@@ -153,29 +153,20 @@ struct ListingDetailSheet: View {
             if photoUrls.isEmpty {
                 gradientPlaceholder
             } else if photoUrls.count == 1 {
-                AsyncImage(url: photoUrls[0]) { phase in
-                    if let image = phase.image {
-                        image
-                            .resizable()
-                            .scaledToFit()
-                    } else {
-                        gradientPlaceholder
-                    }
+                CachedAsyncImage(url: photoUrls[0]) { image in
+                    image.resizable().scaledToFit()
+                } placeholder: {
+                    gradientPlaceholder
                 }
                 .frame(maxWidth: .infinity)
                 .background(Color.black)
             } else {
                 TabView {
                     ForEach(photoUrls, id: \.absoluteString) { url in
-                        AsyncImage(url: url) { phase in
-                            if let image = phase.image {
-                                image
-                                    .resizable()
-                                    .scaledToFit()
-                                    .frame(maxWidth: .infinity)
-                            } else {
-                                gradientPlaceholder
-                            }
+                        CachedAsyncImage(url: url) { image in
+                            image.resizable().scaledToFit().frame(maxWidth: .infinity)
+                        } placeholder: {
+                            gradientPlaceholder
                         }
                     }
                 }
@@ -440,12 +431,10 @@ struct ListingDetailSheet: View {
                     HStack(spacing: AppSpacing.sm) {
                         ForEach(currentPhotos, id: \.id) { photo in
                             ZStack(alignment: .topTrailing) {
-                                AsyncImage(url: URL(string: photo.photoUrl)) { phase in
-                                    if let image = phase.image {
-                                        image.resizable().scaledToFill()
-                                    } else {
-                                        Color(.neutral, 200)
-                                    }
+                                CachedAsyncImage(url: URL(string: photo.photoUrl)) { image in
+                                    image.resizable().scaledToFill()
+                                } placeholder: {
+                                    Color(.neutral, 200)
                                 }
                                 .frame(width: 88, height: 88)
                                 .clipShape(RoundedRectangle(cornerRadius: 10))

@@ -25,11 +25,13 @@ struct ProfileAvatar: View {
     @ViewBuilder
     private var avatarOverlay: some View {
         if let urlString = session.profile?.avatarUrl, let url = URL(string: urlString) {
-            AsyncImage(url: url) { phase in
-                if let image = phase.image {
-                    image.resizable().scaledToFill()
-                } else if let photo = diskPhoto {
+            CachedAsyncImage(url: url) { image in
+                image.resizable().scaledToFill()
+            } placeholder: {
+                if let photo = diskPhoto {
                     photo.resizable().scaledToFill()
+                } else {
+                    Color.clear
                 }
             }
             .frame(width: size, height: size)
