@@ -61,11 +61,11 @@ extension APIClient {
         _ = try await post(path: "/proximity_events/bulk", body: ["events": payload], clerk: clerk)
     }
 
-    // GET /api/v1/landlord_analytics/proximity
+    // GET /api/v1/l/analytics/gps_landlord
     func fetchLandlordProximityAnalytics(clerk: Clerk) async throws -> ProximityAnalyticsResponse {
-        let data = try await get(path: "/landlord_analytics/proximity", clerk: clerk)
-        return try decodeData(ProximityAnalyticsResponse.self, from: data)
-    }
+        let data = try await get(path: "/analytics/gps_landlord", clerk: clerk)
+        return try JSONDecoder.api.decode(ProximityAnalyticsResponse.self, from: data)
+        }
 
 }
 
