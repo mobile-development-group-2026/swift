@@ -19,16 +19,31 @@ class UserSession {
     var firstName: String? { profile?.firstName }
     var isOnboarded: Bool { profile?.onboarded ?? false }
 
-    /// Load profile from backend. If there's a pending sync (sign-up that didn't finish),
-    /// create the user first via POST /auth/sync. Otherwise just GET /profile.
-    /// Retries up to 3 times with increasing delays to handle token race / cold starts.
+    private static let cacheKey = "roomora_profile"
+
+    /// Stale-while-revalidate: serve cached profile instantly, refresh from network in background.
+    /// Blocks (shows loading) only on first ever launch or when a pendingSync must complete.
     func load(clerk: Clerk) async {
         if isLoaded { return }
 
-        for attempt in 1...3 {
-            // give Clerk time to establish the session token
-            try? await Task.sleep(for: .seconds(attempt == 1 ? 1 : 2))
+        // Hydrate from UserDefaults so returning users never see a loading screen
+        if let cached = Self.loadCached() {
+            profile = cached
+            isLoaded = true
+        }
 
+        if pendingSync != nil || !isLoaded {
+            // First launch or pending sign-up: must wait for network before showing app
+            await fetchFromNetwork(clerk: clerk)
+        } else {
+            // Returning user: already showing cached data, refresh silently
+            Task { await fetchFromNetwork(clerk: clerk) }
+        }
+    }
+
+    private func fetchFromNetwork(clerk: Clerk) async {
+        for attempt in 1...3 {
+            try? await Task.sleep(for: .seconds(attempt == 1 ? 1 : 2))
             do {
                 if let sync = pendingSync {
                     profile = try await APIClient.shared.syncUser(
@@ -43,12 +58,11 @@ class UserSession {
                 } else {
                     profile = try await APIClient.shared.fetchProfile(clerk: clerk)
                 }
-                break // success
+                Self.persist(profile)
+                isLoaded = true
+                return
             } catch {
                 print("load attempt \(attempt) failed: \(error)")
-                if attempt == 3 {
-                    print("all attempts exhausted")
-                }
             }
         }
         isLoaded = true
@@ -58,5 +72,16 @@ class UserSession {
         profile = nil
         isLoaded = false
         pendingSync = nil
+        UserDefaults.standard.removeObject(forKey: Self.cacheKey)
+    }
+
+    private static func loadCached() -> SyncResponse? {
+        guard let data = UserDefaults.standard.data(forKey: cacheKey) else { return nil }
+        return try? JSONDecoder().decode(SyncResponse.self, from: data)
+    }
+
+    private static func persist(_ profile: SyncResponse?) {
+        guard let profile, let data = try? JSONEncoder().encode(profile) else { return }
+        UserDefaults.standard.set(data, forKey: cacheKey)
     }
 }
