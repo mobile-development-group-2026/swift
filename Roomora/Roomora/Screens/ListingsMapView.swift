@@ -16,17 +16,16 @@ struct ListingsMapView: View {
 
     var body: some View {
         ZStack(alignment: .bottom) {
-            Map(
-                coordinateRegion: $viewModel.region,
-                annotationItems: viewModel.mapItems
-            ) { item in
-                MapAnnotation(coordinate: item.coordinate) {
-                    Button {
-                        viewModel.selectedItem = item
-                    } label: {
-                        Image(systemName: "mappin.circle.fill")
-                            .font(.title)
-                            .foregroundColor(.red)
+            Map(position: .constant(.region(viewModel.region))) {
+                ForEach(viewModel.mapItems) { item in
+                    Annotation(item.title, coordinate: item.coordinate) {
+                        Button {
+                            viewModel.selectedItem = item
+                        } label: {
+                            Image(systemName: "mappin.circle.fill")
+                                .font(.title)
+                                .foregroundColor(.red)
+                        }
                     }
                 }
             }
