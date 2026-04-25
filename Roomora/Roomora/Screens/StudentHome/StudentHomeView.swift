@@ -131,6 +131,11 @@ struct StudentHomeView: View {
             }
             .padding(.bottom, AppSpacing.lg)
         }
+        .refreshable {
+            async let listings: () = vm.loadListings()
+            async let applications: () = vm.loadMyApplications()
+            _ = await (listings, applications)
+        }
     }
 
     private var listingsGrid: some View {

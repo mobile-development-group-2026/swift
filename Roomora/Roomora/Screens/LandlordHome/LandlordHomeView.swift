@@ -18,13 +18,11 @@ struct LandlordHomeView: View {
 
     enum LandlordNavTab: String, CaseIterable {
         case dashboard = "Dashboard"
-        case messages = "Messages"
         case profile = "Profile"
 
         var icon: String {
             switch self {
             case .dashboard: "square.grid.2x2"
-            case .messages: "bubble.left.and.bubble.right"
             case .profile: "person"
             }
         }
@@ -35,8 +33,6 @@ struct LandlordHomeView: View {
             switch activeNavTab {
             case .dashboard:
                 dashboardContent
-            case .messages:
-                messagesPlaceholder
             case .profile:
                 profileAnalyticsContent
             }
@@ -84,25 +80,13 @@ struct LandlordHomeView: View {
             }
             .padding(.bottom, AppSpacing.lg)
         }
-    }
-
-    private var messagesPlaceholder: some View {
-        VStack(spacing: AppSpacing.md) {
-            Spacer()
-            Image(systemName: "bubble.left.and.bubble.right")
-                .font(.system(size: 42))
-                .foregroundStyle(Color(.neutral, 300))
-            Text("Messages")
-                .font(.body18(.semiBold))
-                .foregroundStyle(Color(.neutral, 500))
-            Text("This area can host future landlord-student conversations.")
-                .font(.body14())
-                .foregroundStyle(Color(.neutral, 400))
-                .multilineTextAlignment(.center)
-                .padding(.horizontal, AppSpacing.xl)
-            Spacer()
+        .refreshable {
+            async let listings: () = vm.loadListings(clerk: clerk)
+            async let applications: () = vm.loadApplications(clerk: clerk)
+            _ = await (listings, applications)
         }
     }
+
 
     private var profileAnalyticsContent: some View {
         ScrollView {
