@@ -84,6 +84,11 @@ struct LandlordHomeView: View {
             }
             .padding(.bottom, AppSpacing.lg)
         }
+        .refreshable {
+            async let listings: () = vm.loadListings(clerk: clerk)
+            async let applications: () = vm.loadApplications(clerk: clerk)
+            _ = await (listings, applications)
+        }
     }
 
     private var messagesPlaceholder: some View {
