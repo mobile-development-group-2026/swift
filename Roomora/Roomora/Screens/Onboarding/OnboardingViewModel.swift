@@ -18,19 +18,34 @@ class OnboardingViewModel {
     var listingPrefs = ListingPreferencesViewModel()
     var newListing = NewListingViewModel()
 
+    private static let stepCacheKey = "onboarding_step"
+
+    init() {
+        buildProfile.restore()
+        situation.restore()
+        preferences.restore()
+        listingPrefs.restore()
+        newListing.restore()
+        step = CacheService.load(Int.self, key: Self.stepCacheKey) ?? 0
+    }
+
     /// true when user picked "I need a place" (needPlace)
     var needsPlace: Bool { situation.situation == .needPlace }
 
     func nextStep(clerk: Clerk, role: String) async {
         if step == 0 {
+            buildProfile.save()
             if role == "landlord" {
                 await saveLandlordProfile(clerk: clerk)
             } else {
                 await saveStudentProfile(clerk: clerk)
             }
+        } else if step == 1 {
+            situation.save()
         }
         if step < totalSteps - 1 {
             step += 1
+            CacheService.save(step, key: Self.stepCacheKey)
         }
     }
 
@@ -121,12 +136,15 @@ class OnboardingViewModel {
         isLoading = true
         errorMessage = nil
         do {
-            // Save step 3 data based on role & situation
+            // Save & submit final step data based on role & situation
             if isLandlord {
+                newListing.save()
                 await saveNewListing(clerk: clerk)
             } else if needsPlace {
+                listingPrefs.save()
                 await saveListingProfile(clerk: clerk)
             } else {
+                preferences.save()
                 await saveLifestyleProfile(clerk: clerk)
             }
             if errorMessage != nil {
@@ -146,11 +164,21 @@ class OnboardingViewModel {
                 fields: finalFields
             )
             completedProfile = profile
+            clearDrafts()
             showCelebration = true
         } catch {
             errorMessage = error.localizedDescription
         }
         isLoading = false
+    }
+
+    private func clearDrafts() {
+        BuildYourProfileViewModel.clearDraft()
+        RoommateSituationViewModel.clearDraft()
+        RoommatePreferencesViewModel.clearDraft()
+        ListingPreferencesViewModel.clearDraft()
+        NewListingViewModel.clearDraft()
+        CacheService.clear(key: Self.stepCacheKey)
     }
 
     private func saveLifestyleProfile(clerk: Clerk) async {
@@ -260,6 +288,8 @@ class OnboardingViewModel {
     }
 
     func finishOnboarding(session: UserSession) {
-        session.profile = completedProfile
+        if let completedProfile {
+            session.commit(completedProfile)
+        }
     }
 }

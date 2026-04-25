@@ -97,4 +97,39 @@ class BuildYourProfileViewModel {
     var canContinue: Bool {
         selectedHobbies.count > 0
     }
+
+    // MARK: - Draft persistence
+
+    private struct Draft: Codable {
+        var bio: String
+        var university: String
+        var major: String?
+        var birthYear: Int?
+        var graduationYear: Int?
+        var selectedHobbies: [String]
+    }
+
+    private static let cacheKey = "onboarding_build_profile"
+
+    func save() {
+        let draft = Draft(bio: bio, university: university, major: major,
+                          birthYear: birthYear, graduationYear: graduationYear,
+                          selectedHobbies: Array(selectedHobbies))
+        CacheService.save(draft, key: Self.cacheKey)
+    }
+
+    func restore() {
+        guard let draft = CacheService.load(Draft.self, key: Self.cacheKey) else { return }
+        bio = draft.bio
+        university = draft.university
+        major = draft.major
+        birthYear = draft.birthYear
+        graduationYear = draft.graduationYear
+        selectedHobbies = Set(draft.selectedHobbies)
+    }
+
+    static func clearDraft() {
+        CacheService.clear(key: cacheKey)
+        deletePhoto()
+    }
 }
