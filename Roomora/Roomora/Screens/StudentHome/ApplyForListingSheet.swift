@@ -146,8 +146,25 @@ struct ApplyForListingSheet: View {
             try await APIClient.shared.createApplication(clerk: clerk, listingId: listing.id, fields: fields)
             onSubmitted?(false)
             dismiss()
+        } catch let apiErr as APIError {
+            // 4xx = server rejected the request — don't queue, show the message.
+            if case .server(let status, let message) = apiErr, (400...499).contains(status) {
+                self.error = message
+            } else {
+                // Network/5xx — queue offline and sync later.
+                modelContext.insert(PendingApplicationOp(
+                    listingId: listing.id,
+                    studentNotes: notes.isEmpty ? nil : notes,
+                    preferredVisitAt: visitStr
+                ))
+                try? modelContext.save()
+                queuedOffline = true
+                onSubmitted?(true)
+                try? await Task.sleep(for: .seconds(2))
+                dismiss()
+            }
         } catch {
-            // Offline — persist locally and sync when connectivity returns.
+            // Unknown network error — queue offline.
             modelContext.insert(PendingApplicationOp(
                 listingId: listing.id,
                 studentNotes: notes.isEmpty ? nil : notes,
@@ -156,7 +173,6 @@ struct ApplyForListingSheet: View {
             try? modelContext.save()
             queuedOffline = true
             onSubmitted?(true)
-            // Auto-dismiss after a moment so the user sees the confirmation.
             try? await Task.sleep(for: .seconds(2))
             dismiss()
         }

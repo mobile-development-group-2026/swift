@@ -270,8 +270,16 @@ class StudentHomeViewModel {
                 )
                 context.delete(op)
                 try? context.save()
+            } catch let apiErr as APIError {
+                if case .server(let status, _) = apiErr, (400...499).contains(status) {
+                    // Server rejected (e.g. already applied) — discard, don't retry.
+                    context.delete(op)
+                    try? context.save()
+                } else {
+                    break // network/5xx — still offline, retry next time
+                }
             } catch {
-                break // still offline — retry next time
+                break // unknown network error, retry next time
             }
         }
 

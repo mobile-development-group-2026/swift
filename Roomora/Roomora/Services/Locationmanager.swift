@@ -255,7 +255,7 @@ final class StudentProximityTracker: ObservableObject {
     @Published private(set) var status: ProximityTrackingStatus = .idle
     @Published private(set) var pendingEventsCount: Int = 0
 
-    private let radiusMeters: CLLocationDistance = 250000000
+    private let radiusMeters: CLLocationDistance = 250
     private let cooldownSeconds: TimeInterval = 30
     private var targets: [ProximityListingTarget] = []
     private var insideRadius: Set<String> = []
