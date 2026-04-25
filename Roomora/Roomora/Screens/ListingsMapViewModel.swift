@@ -39,49 +39,53 @@ final class ListingsMapViewModel: ObservableObject {
         isLoading = true
         defer { isLoading = false }
 
-        do {
-            let listings = try await APIClient.shared.fetchListings(clerk: Clerk.shared)
-
-            let items = await withTaskGroup(of: ListingMapItem?.self, returning: [ListingMapItem].self) { group in
-                for listing in listings {
-                    group.addTask {
-                        guard let coordinate = await GeocodingService.shared.coordinate(for: listing) else {
-                            return nil
-                        }
-
-                        return ListingMapItem(
-                            id: listing.id,
-                            title: listing.title,
-                            address: listing.address ?? "",
-                            city: listing.city ?? "",
-                            rent: Double(listing.rent) ?? 0,
-                            coordinate: coordinate,
-                            listing: listing
-                        )
-                    }
-                }
-
-                var results: [ListingMapItem] = []
-                for await item in group {
-                    if let item {
-                        results.append(item)
-                    }
-                }
-                return results
+        // Use cached listings immediately so pins appear without a network round-trip.
+        // Fall back to a fresh fetch only when the cache is empty.
+        let listings: [ListingResponse]
+        if let cached = CacheService.load([ListingResponse].self, key: "listings"), !cached.isEmpty {
+            listings = cached
+        } else {
+            do {
+                listings = try await APIClient.shared.fetchListings(clerk: Clerk.shared)
+            } catch {
+                print("Failed to load listings for map: \(error)")
+                return
             }
+        }
 
-            mapItems = items
-
-            if LocationManager.shared.currentLocation != nil {
-                centerOnUserIfAvailable()
-            } else if let first = items.first {
-                region = MKCoordinateRegion(
-                    center: first.coordinate,
-                    span: MKCoordinateSpan(latitudeDelta: 0.08, longitudeDelta: 0.08)
-                )
+        let items = await withTaskGroup(of: ListingMapItem?.self, returning: [ListingMapItem].self) { group in
+            for listing in listings {
+                group.addTask {
+                    guard let coordinate = await GeocodingService.shared.coordinate(for: listing) else {
+                        return nil
+                    }
+                    return ListingMapItem(
+                        id: listing.id,
+                        title: listing.title,
+                        address: listing.address ?? "",
+                        city: listing.city ?? "",
+                        rent: Double(listing.rent) ?? 0,
+                        coordinate: coordinate,
+                        listing: listing
+                    )
+                }
             }
-        } catch {
-            print("Failed to load listings for map: \(error)")
+            var results: [ListingMapItem] = []
+            for await item in group {
+                if let item { results.append(item) }
+            }
+            return results
+        }
+
+        mapItems = items
+
+        if LocationManager.shared.currentLocation != nil {
+            centerOnUserIfAvailable()
+        } else if let first = items.first {
+            region = MKCoordinateRegion(
+                center: first.coordinate,
+                span: MKCoordinateSpan(latitudeDelta: 0.08, longitudeDelta: 0.08)
+            )
         }
     }
 }
