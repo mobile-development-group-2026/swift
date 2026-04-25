@@ -8,7 +8,7 @@ struct ListingDetailSheet: View {
     var showApplyButton: Bool = false
     var initiallyFavorited: Bool = false
     var canManagePhotos: Bool = false
-    var onApplicationSubmitted: (() -> Void)? = nil
+    var onApplicationSubmitted: ((_ wasOffline: Bool) -> Void)? = nil
     var onFavoriteToggled: (() async -> Void)? = nil
 
     @Environment(\.dismiss) private var dismiss
@@ -27,7 +27,7 @@ struct ListingDetailSheet: View {
         showApplyButton: Bool = false,
         initiallyFavorited: Bool = false,
         canManagePhotos: Bool = false,
-        onApplicationSubmitted: (() -> Void)? = nil,
+        onApplicationSubmitted: ((_ wasOffline: Bool) -> Void)? = nil,
         onFavoriteToggled: (() async -> Void)? = nil
     ) {
         self.listing = listing

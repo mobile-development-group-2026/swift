@@ -1,18 +1,21 @@
 import SwiftUI
+import SwiftData
 import ClerkKit
 
 struct ApplyForListingSheet: View {
     let listing: ListingResponse
-    var onSubmitted: (() -> Void)? = nil
+    var onSubmitted: ((_ wasOffline: Bool) -> Void)? = nil
 
     @Environment(Clerk.self) private var clerk
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.modelContext) private var modelContext
 
     @State private var notes = ""
     @State private var includeVisit = false
     @State private var visitDate = Calendar.current.date(byAdding: .day, value: 3, to: Date()) ?? Date()
     @State private var isLoading = false
     @State private var submitted = false
+    @State private var queuedOffline = false
     @State private var error: String?
 
     var body: some View {
@@ -91,16 +94,29 @@ struct ApplyForListingSheet: View {
             .safeAreaInset(edge: .bottom, spacing: 0) {
                 VStack(spacing: 0) {
                     Divider()
-                    AppButton(
-                        title: isLoading ? "Submitting…" : "Submit Application",
-                        variant: .primary
-                    ) {
-                        Task { await submit() }
+                    if queuedOffline {
+                        HStack(spacing: AppSpacing.sm) {
+                            Image(systemName: "clock.arrow.2.circlepath")
+                                .foregroundStyle(Color(.purple, 500))
+                            Text("Saved — will submit when back online")
+                                .font(.body14(.semiBold))
+                                .foregroundStyle(Color(.neutral, 700))
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding(AppSpacing.lg)
+                        .background(.white)
+                    } else {
+                        AppButton(
+                            title: isLoading ? "Submitting…" : "Submit Application",
+                            variant: .primary
+                        ) {
+                            Task { await submit() }
+                        }
+                        .disabled(isLoading)
+                        .opacity(isLoading ? 0.6 : 1)
+                        .padding(AppSpacing.lg)
+                        .background(.white)
                     }
-                    .disabled(isLoading)
-                    .opacity(isLoading ? 0.6 : 1)
-                    .padding(AppSpacing.lg)
-                    .background(.white)
                 }
             }
             .navigationTitle("Apply")
@@ -121,19 +137,28 @@ struct ApplyForListingSheet: View {
         isLoading = true
         error = nil
 
+        let visitStr: String? = includeVisit ? ISO8601DateFormatter().string(from: visitDate) : nil
         var fields: [String: Any] = [:]
-        if !notes.isEmpty { fields["student_notes"] = notes }
-        if includeVisit {
-            let formatter = ISO8601DateFormatter()
-            fields["preferred_visit_at"] = formatter.string(from: visitDate)
-        }
+        if let n = visitStr { fields["preferred_visit_at"] = n }
+        if !notes.isEmpty   { fields["student_notes"] = notes }
 
         do {
             try await APIClient.shared.createApplication(clerk: clerk, listingId: listing.id, fields: fields)
-            onSubmitted?()
+            onSubmitted?(false)
             dismiss()
         } catch {
-            self.error = error.localizedDescription
+            // Offline — persist locally and sync when connectivity returns.
+            modelContext.insert(PendingApplicationOp(
+                listingId: listing.id,
+                studentNotes: notes.isEmpty ? nil : notes,
+                preferredVisitAt: visitStr
+            ))
+            try? modelContext.save()
+            queuedOffline = true
+            onSubmitted?(true)
+            // Auto-dismiss after a moment so the user sees the confirmation.
+            try? await Task.sleep(for: .seconds(2))
+            dismiss()
         }
         isLoading = false
     }

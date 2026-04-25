@@ -1,4 +1,5 @@
 import SwiftUI
+import SwiftData
 import ClerkKit
 
 @main
@@ -21,5 +22,6 @@ struct RoomoraApp: App {
             .environment(Clerk.shared)
             .environment(session)
     }
+    .modelContainer(ModelContainer.roomora)
   }
 }

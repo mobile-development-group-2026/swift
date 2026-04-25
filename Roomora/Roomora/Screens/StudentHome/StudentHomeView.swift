@@ -74,8 +74,12 @@ struct StudentHomeView: View {
                 listing: listing,
                 showApplyButton: !vm.applications.contains(where: { $0.listingId == listing.id }),
                 initiallyFavorited: vm.isFavorited(listing.id),
-                onApplicationSubmitted: {
-                    Task { await vm.loadMyApplications() }
+                onApplicationSubmitted: { wasOffline in
+                    if wasOffline {
+                        vm.addLocalPendingApplication(for: listing)
+                    } else {
+                        Task { await vm.loadMyApplications() }
+                    }
                 },
                 onFavoriteToggled: {
                     await vm.toggleFavorite(listing: listing)
