@@ -68,6 +68,13 @@ class UserSession {
         isLoaded = true
     }
 
+    /// Update the in-memory profile and immediately persist it to disk.
+    /// Call this after any mutation that must survive an app restart (e.g. onboarding completion).
+    func commit(_ newProfile: SyncResponse) {
+        profile = newProfile
+        Self.persist(newProfile)
+    }
+
     func clear() {
         profile = nil
         isLoaded = false

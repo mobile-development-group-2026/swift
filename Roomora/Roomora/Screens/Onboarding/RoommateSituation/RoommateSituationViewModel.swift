@@ -54,4 +54,22 @@ class RoommateSituationViewModel {
     var canContinue: Bool {
         situation != nil
     }
+
+    // MARK: - Draft persistence
+
+    private static let cacheKey = "onboarding_situation"
+
+    func save() {
+        guard let raw = situation?.rawValue else { return }
+        CacheService.save(raw, key: Self.cacheKey)
+    }
+
+    func restore() {
+        guard let raw = CacheService.load(String.self, key: Self.cacheKey) else { return }
+        situation = HousingSituation(rawValue: raw)
+    }
+
+    static func clearDraft() {
+        CacheService.clear(key: cacheKey)
+    }
 }

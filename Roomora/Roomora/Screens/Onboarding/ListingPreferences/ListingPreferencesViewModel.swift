@@ -51,4 +51,42 @@ class ListingPreferencesViewModel {
             selectedPreferences.insert(item)
         }
     }
+
+    // MARK: - Draft persistence
+
+    private struct Draft: Codable {
+        var maxBudget: Int?
+        var propertyType: String?
+        var moveInDate: Date
+        var leaseLength: Int
+        var maxDistance: Int?
+        var selectedAmenities: [String]
+        var selectedPreferences: [String]
+    }
+
+    private static let cacheKey = "onboarding_listing_prefs"
+
+    func save() {
+        let draft = Draft(maxBudget: maxBudget, propertyType: propertyType,
+                          moveInDate: moveInDate, leaseLength: leaseLength,
+                          maxDistance: maxDistance,
+                          selectedAmenities: Array(selectedAmenities),
+                          selectedPreferences: Array(selectedPreferences))
+        CacheService.save(draft, key: Self.cacheKey)
+    }
+
+    func restore() {
+        guard let draft = CacheService.load(Draft.self, key: Self.cacheKey) else { return }
+        maxBudget = draft.maxBudget
+        propertyType = draft.propertyType
+        moveInDate = draft.moveInDate
+        leaseLength = draft.leaseLength
+        maxDistance = draft.maxDistance
+        selectedAmenities = Set(draft.selectedAmenities)
+        selectedPreferences = Set(draft.selectedPreferences)
+    }
+
+    static func clearDraft() {
+        CacheService.clear(key: cacheKey)
+    }
 }

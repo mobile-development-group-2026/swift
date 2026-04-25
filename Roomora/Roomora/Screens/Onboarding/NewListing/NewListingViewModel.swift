@@ -74,4 +74,58 @@ class NewListingViewModel {
         !address.isEmpty &&
         description.count >= descriptionMinChars
     }
+
+    // MARK: - Draft persistence
+
+    private struct Draft: Codable {
+        var title: String
+        var monthlyRent: String
+        var securityDeposit: String
+        var propertyType: String?
+        var leaseLength: String
+        var availableFrom: Date
+        var selectedAmenities: [String]
+        var selectedRules: [String]
+        var description: String
+        var city: String
+        var address: String
+        var state: String
+        var zipCode: String
+        var bedrooms: Int
+        var bathrooms: Int
+    }
+
+    private static let cacheKey = "onboarding_new_listing"
+
+    func save() {
+        let draft = Draft(title: title, monthlyRent: monthlyRent, securityDeposit: securityDeposit,
+                          propertyType: propertyType, leaseLength: leaseLength, availableFrom: availableFrom,
+                          selectedAmenities: Array(selectedAmenities), selectedRules: Array(selectedRules),
+                          description: description, city: city, address: address, state: state,
+                          zipCode: zipCode, bedrooms: bedrooms, bathrooms: bathrooms)
+        CacheService.save(draft, key: Self.cacheKey)
+    }
+
+    func restore() {
+        guard let draft = CacheService.load(Draft.self, key: Self.cacheKey) else { return }
+        title = draft.title
+        monthlyRent = draft.monthlyRent
+        securityDeposit = draft.securityDeposit
+        propertyType = draft.propertyType
+        leaseLength = draft.leaseLength
+        availableFrom = draft.availableFrom
+        selectedAmenities = Set(draft.selectedAmenities)
+        selectedRules = Set(draft.selectedRules)
+        description = draft.description
+        city = draft.city
+        address = draft.address
+        state = draft.state
+        zipCode = draft.zipCode
+        bedrooms = draft.bedrooms
+        bathrooms = draft.bathrooms
+    }
+
+    static func clearDraft() {
+        CacheService.clear(key: cacheKey)
+    }
 }

@@ -25,4 +25,42 @@ class RoommatePreferencesViewModel {
             selectedRequirements.insert(item)
         }
     }
+
+    // MARK: - Draft persistence
+
+    private struct Draft: Codable {
+        var spotsAvailable: Int
+        var moveInMonth: String?
+        var genderPreference: Int?
+        var sleepSchedule: Int?
+        var cleanliness: Int?
+        var selectedLifestyle: [String]
+        var selectedRequirements: [String]
+    }
+
+    private static let cacheKey = "onboarding_roommate_prefs"
+
+    func save() {
+        let draft = Draft(spotsAvailable: spotsAvailable, moveInMonth: moveInMonth,
+                          genderPreference: genderPreference, sleepSchedule: sleepSchedule,
+                          cleanliness: cleanliness,
+                          selectedLifestyle: Array(selectedLifestyle),
+                          selectedRequirements: Array(selectedRequirements))
+        CacheService.save(draft, key: Self.cacheKey)
+    }
+
+    func restore() {
+        guard let draft = CacheService.load(Draft.self, key: Self.cacheKey) else { return }
+        spotsAvailable = draft.spotsAvailable
+        moveInMonth = draft.moveInMonth
+        genderPreference = draft.genderPreference
+        sleepSchedule = draft.sleepSchedule
+        cleanliness = draft.cleanliness
+        selectedLifestyle = Set(draft.selectedLifestyle)
+        selectedRequirements = Set(draft.selectedRequirements)
+    }
+
+    static func clearDraft() {
+        CacheService.clear(key: cacheKey)
+    }
 }
