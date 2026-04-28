@@ -1,7 +1,7 @@
 import SwiftUI
 
 
-//
+
 enum AppFont {
     enum Weight: String {
         case thin = "Sora-Thin"

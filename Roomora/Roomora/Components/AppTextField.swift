@@ -1,33 +1,16 @@
 import SwiftUI
 
-struct AppTextField<Trailing: View>: View {
+struct AppTextField: View {
     let icon: String
     let label: String
     let placeholder: String
     @Binding var text: String
     var isSecure: Bool = false
+    var isMultiline: Bool = false
+    var minHeight: CGFloat = 0
     var keyboardType: UIKeyboardType = .default
-    @ViewBuilder var trailing: () -> Trailing
 
     @State private var showPassword = false
-
-    init(
-        icon: String,
-        label: String,
-        placeholder: String,
-        text: Binding<String>,
-        isSecure: Bool = false,
-        keyboardType: UIKeyboardType = .default,
-        @ViewBuilder trailing: @escaping () -> Trailing = { EmptyView() }
-    ) {
-        self.icon = icon
-        self.label = label
-        self.placeholder = placeholder
-        self._text = text
-        self.isSecure = isSecure
-        self.keyboardType = keyboardType
-        self.trailing = trailing
-    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: AppSpacing.xs) {
@@ -35,41 +18,63 @@ struct AppTextField<Trailing: View>: View {
                 .font(.body10(.semiBold))
                 .foregroundStyle(Color(.neutral, 700))
 
-            HStack(spacing: AppSpacing.sm) {
-                Image(systemName: icon)
-                    .foregroundStyle(Color(.neutral, 500))
-                    .font(.body16())
+            if isMultiline {
+                ZStack(alignment: .topLeading) {
+                    TextEditor(text: $text)
+                        .font(.body16())
+                        .foregroundStyle(Color(.neutral, 900))
+                        .scrollContentBackground(.hidden)
+                        .frame(minHeight: minHeight > 0 ? minHeight : 120)
 
-                Group {
-                    if isSecure && !showPassword {
-                        SecureField("", text: $text, prompt: Text(placeholder).foregroundColor(Color(.neutral, 500)))
-                    } else {
-                        TextField("", text: $text, prompt: Text(placeholder).foregroundColor(Color(.neutral, 500)))
-                    }
-                }
-                .font(.body16())
-                .foregroundStyle(Color(.neutral, 900))
-                .keyboardType(keyboardType)
-                .autocorrectionDisabled()
-                .textInputAutocapitalization(.never)
-
-                if isSecure {
-                    Button {
-                        showPassword.toggle()
-                    } label: {
-                        Image(systemName: showPassword ? "eye.slash" : "eye")
-                            .foregroundStyle(Color(.neutral, 500))
+                    if text.isEmpty {
+                        Text(placeholder)
                             .font(.body16())
+                            .foregroundStyle(Color(.neutral, 500))
+                            .padding(.top, 8)
+                            .padding(.leading, 4)
+                            .allowsHitTesting(false)
                     }
                 }
+                .padding(AppSpacing.md)
+                .background(
+                    RoundedRectangle(cornerRadius: 12)
+                        .stroke(Color(.neutral, 500), lineWidth: 1)
+                )
+            } else {
+                HStack(spacing: AppSpacing.sm) {
+                    Image(systemName: icon)
+                        .foregroundStyle(Color(.neutral, 500))
+                        .font(.body16())
 
-                trailing()
+                    Group {
+                        if isSecure && !showPassword {
+                            SecureField("", text: $text, prompt: Text(placeholder).foregroundColor(Color(.neutral, 500)))
+                        } else {
+                            TextField("", text: $text, prompt: Text(placeholder).foregroundColor(Color(.neutral, 500)))
+                        }
+                    }
+                    .font(.body16())
+                    .foregroundStyle(Color(.neutral, 900))
+                    .keyboardType(keyboardType)
+                    .autocorrectionDisabled()
+                    .textInputAutocapitalization(.never)
+
+                    if isSecure {
+                        Button {
+                            showPassword.toggle()
+                        } label: {
+                            Image(systemName: showPassword ? "eye.slash" : "eye")
+                                .foregroundStyle(Color(.neutral, 500))
+                                .font(.body16())
+                        }
+                    }
+                }
+                .padding(AppSpacing.md)
+                .background(
+                    RoundedRectangle(cornerRadius: 12)
+                        .stroke(Color(.neutral, 500), lineWidth: 1)
+                )
             }
-            .padding(AppSpacing.md)
-            .background(
-                RoundedRectangle(cornerRadius: 12)
-                    .stroke(Color(.neutral, 300), lineWidth: 1)
-            )
         }
     }
 }

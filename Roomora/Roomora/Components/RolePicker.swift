@@ -5,11 +5,11 @@ struct RolePicker: View {
 
     var body: some View {
         ZStack {
-            // Background
+            // background
             RoundedRectangle(cornerRadius: 14)
                 .fill(Color(.neutral, 200))
 
-            // Sliding white pill
+            // sliding white pill
             HStack(spacing: 0) {
                 if role != .student { Color.clear }
                 RoundedRectangle(cornerRadius: 12)
@@ -19,26 +19,29 @@ struct RolePicker: View {
             }
             .padding(AppSpacing.xxs)
 
-            // Labels
+            // labels
             HStack(spacing: 0) {
-                ForEach(UserRole.allCases, id: \.self) { r in
-                    Button {
-                        withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
-                            role = r
-                        }
-                    } label: {
-                        HStack(spacing: AppSpacing.xs) {
-                            Text(r.icon)
-                            Text(r.rawValue)
-                                .font(.body14(.semiBold))
-                        }
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, AppSpacing.sm)
-                        .foregroundStyle(role == r ? Color(.purple, 500) : Color(.neutral, 600))
-                    }
-                }
+                roleButton(.student)
+                roleButton(.landlord)
             }
         }
         .frame(height: 48)
+    }
+
+    private func roleButton(_ r: UserRole) -> some View {
+        Button {
+            withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                role = r
+            }
+        } label: {
+            HStack(spacing: AppSpacing.xs) {
+                Text(r.icon)
+                Text(r.rawValue)
+                    .font(.body14(.semiBold))
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, AppSpacing.sm)
+            .foregroundStyle(role == r ? Color(.purple, 500) : Color(.neutral, 600))
+        }
     }
 }
