@@ -1,5 +1,6 @@
 import SwiftUI
 import Lottie
+import ClerkKit
 
 struct RoommateListView: View {
     var vm: RoommateViewModel
@@ -7,6 +8,7 @@ struct RoommateListView: View {
 
     @State private var matchedName: String? = nil
     @State private var showMatchScreen = false
+    @State private var selectedUserId: String? = nil
 
     var body: some View {
         Group {
@@ -33,14 +35,20 @@ struct RoommateListView: View {
             } else {
                 LazyVStack(spacing: AppSpacing.md) {
                     ForEach(filteredRoommates) { roommate in
-                        RoommateCard(roommate: roommate) {
-                            let matched = await vm.like(roommate: roommate)
-                            if matched {
-                                matchedName = roommate.firstName
-                                showMatchScreen = true
+                        RoommateCard(
+                            roommate: roommate,
+                            onLike: {
+                                let matched = await vm.like(roommate: roommate)
+                                if matched {
+                                    matchedName = roommate.firstName
+                                    showMatchScreen = true
+                                }
+                                return matched
+                            },
+                            onTap: {
+                                selectedUserId = roommate.id
                             }
-                            return matched
-                        }
+                        )
                         .padding(.horizontal, AppSpacing.lg)
                     }
                 }
@@ -51,7 +59,16 @@ struct RoommateListView: View {
                 showMatchScreen = false
             }
         }
+        .sheet(item: Binding(get: { selectedUserId.map { ProfileSheetItem(id: $0) } }, set: { selectedUserId = $0?.id })) { item in
+            RoommateProfileView(userId: item.id)
+                .environment(Clerk.shared)
+        }
     }
+}
+
+// Wrapper to make String work with .sheet(item:)
+private struct ProfileSheetItem: Identifiable {
+    let id: String
 }
 
 struct MatchAnimationScreen: View {
