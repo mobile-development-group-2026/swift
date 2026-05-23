@@ -16,7 +16,7 @@ final class SavedListing {
     }
 
     var listing: ListingResponse? {
-        try? JSONDecoder().decode(ListingResponse.self, from: listingData)
+        try? JSONDecoder.api.decode(ListingResponse.self, from: listingData)
     }
 }
 
