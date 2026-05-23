@@ -3,6 +3,7 @@ import Lottie
 
 struct RoommateListView: View {
     var vm: RoommateViewModel
+    var filteredRoommates: [RoommateStudent]
 
     @State private var matchedName: String? = nil
     @State private var showMatchScreen = false
@@ -13,15 +14,15 @@ struct RoommateListView: View {
                 ProgressView()
                     .frame(maxWidth: .infinity)
                     .padding(.top, AppSpacing.xxl)
-            } else if vm.visibleRoommates.isEmpty {
+            } else if filteredRoommates.isEmpty {
                 VStack(spacing: AppSpacing.sm) {
                     Image(systemName: "person.2")
                         .font(.system(size: 40))
                         .foregroundStyle(Color(.neutral, 300))
-                    Text("No roommates available right now")
+                    Text("No roommates match your filters")
                         .font(.body16(.semiBold))
                         .foregroundStyle(Color(.neutral, 500))
-                    Text("Check back soon — more students join every day.")
+                    Text("Try adjusting your filters.")
                         .font(.body14())
                         .foregroundStyle(Color(.neutral, 400))
                         .multilineTextAlignment(.center)
@@ -31,7 +32,7 @@ struct RoommateListView: View {
                 .padding(.horizontal, AppSpacing.lg)
             } else {
                 LazyVStack(spacing: AppSpacing.md) {
-                    ForEach(vm.visibleRoommates) { roommate in
+                    ForEach(filteredRoommates) { roommate in
                         RoommateCard(roommate: roommate) {
                             let matched = await vm.like(roommate: roommate)
                             if matched {
@@ -62,7 +63,6 @@ struct MatchAnimationScreen: View {
 
     var body: some View {
         ZStack {
-            // Background
             LinearGradient(
                 colors: [Color(.purple, 500), Color(.purple, 900)],
                 startPoint: .top,
@@ -73,12 +73,10 @@ struct MatchAnimationScreen: View {
             VStack(spacing: 0) {
                 Spacer()
 
-                // Lottie animation
                 LottieView(animation: .named("match"))
                     .playing(loopMode: .playOnce)
                     .frame(width: 280, height: 280)
 
-                // Text
                 VStack(spacing: AppSpacing.sm) {
                     Text("It's a match!")
                         .font(.h1(.bold))
@@ -105,7 +103,6 @@ struct MatchAnimationScreen: View {
 
                 Spacer()
 
-                // Button
                 Button(action: onDismiss) {
                     Text("Keep browsing")
                         .font(.body16(.semiBold))
@@ -122,9 +119,6 @@ struct MatchAnimationScreen: View {
                 .animation(.spring(duration: 0.5).delay(0.8), value: showButton)
             }
         }
-        .onAppear {
-            showText = true
-            showButton = true
-        }
+        .onAppear { showText = true; showButton = true }
     }
 }
