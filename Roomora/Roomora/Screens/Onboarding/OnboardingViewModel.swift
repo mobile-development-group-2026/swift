@@ -42,6 +42,10 @@ class OnboardingViewModel {
             }
         } else if step == 1 {
             situation.save()
+            if let sit = situation.situation {
+                var fields: [String: Any] = ["housing_situation": sit.rawValue]
+                _ = try? await APIClient.shared.updateProfile(clerk: clerk, fields: fields)
+            }
         }
         if step < totalSteps - 1 {
             step += 1

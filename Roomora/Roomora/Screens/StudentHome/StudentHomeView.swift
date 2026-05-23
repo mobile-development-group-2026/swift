@@ -4,9 +4,14 @@ struct StudentHomeView: View {
     @Environment(UserSession.self) private var session
 
     @State private var vm = StudentHomeViewModel()
-    @State private var selectedTab: HomeTab = .housing
+    @State private var roommateVM = RoommateViewModel()
+    @State private var selectedTab: HomeTab = .roommate
     @State private var activeNavTab: NavTab = .discover
     @State private var selectedListing: ListingResponse?
+
+    private var hasPlace: Bool {
+        session.profile?.housingSituation == "havePlace"
+    }
 
     enum HomeTab: String, CaseIterable {
         case roommate = "Roommate"
@@ -58,7 +63,8 @@ struct StudentHomeView: View {
             async let listings: () = vm.loadListings()
             async let applications: () = vm.loadMyApplications()
             async let favorites: () = vm.loadFavorites()
-            _ = await (listings, applications, favorites)
+            async let roommates: () = roommateVM.loadRoommates()
+            _ = await (listings, applications, favorites, roommates)
             vm.syncProximityTrackingState()
         }
         .onChange(of: activeNavTab) { _, newTab in
@@ -95,21 +101,15 @@ struct StudentHomeView: View {
             VStack(alignment: .leading, spacing: AppSpacing.lg) {
                 topBar
                 proximityTrackingBanner
-                tabPicker
 
-                if selectedTab == .roommate {
-                    VStack(spacing: AppSpacing.sm) {
-                        Image(systemName: "person.2")
-                            .font(.system(size: 40))
-                            .foregroundStyle(Color(.neutral, 300))
-                        Text("No roommates available right now")
-                            .font(.body16(.semiBold))
-                            .foregroundStyle(Color(.neutral, 500))
-                            .multilineTextAlignment(.center)
-                    }
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, AppSpacing.xxl)
-                    .padding(.horizontal, AppSpacing.lg)
+                // havePlace: roommate feed only, no toggle
+                // needPlace: toggle between roommate feed and listings
+                if !hasPlace {
+                    tabPicker
+                }
+
+                if hasPlace || selectedTab == .roommate {
+                    RoommateListView(vm: roommateVM)
                 } else if vm.isLoading {
                     ProgressView()
                         .frame(maxWidth: .infinity)
@@ -132,9 +132,13 @@ struct StudentHomeView: View {
             .padding(.bottom, AppSpacing.lg)
         }
         .refreshable {
-            async let listings: () = vm.loadListings()
-            async let applications: () = vm.loadMyApplications()
-            _ = await (listings, applications)
+            if hasPlace || selectedTab == .roommate {
+                await roommateVM.refresh()
+            } else {
+                async let listings: () = vm.loadListings()
+                async let applications: () = vm.loadMyApplications()
+                _ = await (listings, applications)
+            }
         }
     }
 
@@ -218,28 +222,24 @@ struct StudentHomeView: View {
     private var tabPicker: some View {
         HStack(spacing: 0) {
             ForEach(HomeTab.allCases, id: \.self) { tab in
-                Button {
-                    withAnimation(.easeInOut(duration: 0.2)) {
-                        selectedTab = tab
-                    }
-                } label: {
+                ZStack {
+                    RoundedRectangle(cornerRadius: 12)
+                        .fill(selectedTab == tab ? Color(.purple, 500) : Color.clear)
                     Text(tab.rawValue)
                         .font(.body16(.semiBold))
                         .foregroundStyle(selectedTab == tab ? .white : Color(.neutral, 600))
-                        .frame(maxWidth: .infinity)
                         .padding(.vertical, AppSpacing.sm)
-                        .background(
-                            RoundedRectangle(cornerRadius: 12)
-                                .fill(selectedTab == tab ? Color(.purple, 500) : .clear)
-                        )
                 }
-                .buttonStyle(.plain)
+                .contentShape(Rectangle())
+                .onTapGesture { selectedTab = tab }
+                .frame(maxWidth: .infinity)
             }
         }
         .padding(4)
         .background(
             RoundedRectangle(cornerRadius: 14)
                 .fill(.white)
+                .shadow(color: .black.opacity(0.06), radius: 6, y: 2)
         )
         .padding(.horizontal, AppSpacing.lg)
     }

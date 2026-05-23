@@ -57,6 +57,7 @@ class UserSession {
                     pendingSync = nil
                 } else {
                     profile = try await APIClient.shared.fetchProfile(clerk: clerk)
+                    print("✅ Profile loaded: \(String(describing: profile))")
                 }
                 Self.persist(profile)
                 isLoaded = true
