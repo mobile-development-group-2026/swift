@@ -5,7 +5,7 @@ import PhotosUI
 @Observable
 class OnboardingViewModel {
     var step = 0
-    var totalSteps: Int { isLandlord ? 2 : 3 }
+    var totalSteps: Int { isLandlord ? 2 : 4 }
     var isLoading = false
     var errorMessage: String?
     var showCelebration = false
@@ -41,9 +41,14 @@ class OnboardingViewModel {
                 await saveStudentProfile(clerk: clerk)
             }
         } else if step == 1 {
+            // Everyone fills out lifestyle — save it now
+            preferences.save()
+            await saveLifestyleProfile(clerk: clerk)
+        } else if step == 2 {
+            // Situation choice
             situation.save()
             if let sit = situation.situation {
-                var fields: [String: Any] = ["housing_situation": sit.rawValue]
+                let fields: [String: Any] = ["housing_situation": sit.rawValue]
                 _ = try? await APIClient.shared.updateProfile(clerk: clerk, fields: fields)
             }
         }
@@ -128,7 +133,8 @@ class OnboardingViewModel {
     var canContinue: Bool {
         switch step {
         case 0: return buildProfile.canContinue
-        case 1: return isLandlord ? newListing.canContinue : situation.canContinue
+        case 1: return true  // lifestyle — all optional
+        case 2: return isLandlord ? newListing.canContinue : situation.canContinue
         default: return true
         }
     }
@@ -140,7 +146,6 @@ class OnboardingViewModel {
         isLoading = true
         errorMessage = nil
         do {
-            // Save & submit final step data based on role & situation
             if isLandlord {
                 newListing.save()
                 await saveNewListing(clerk: clerk)
@@ -148,25 +153,22 @@ class OnboardingViewModel {
                 listingPrefs.save()
                 await saveListingProfile(clerk: clerk)
             } else {
+                // havePlace — save spots + move-in month
                 preferences.save()
-                await saveLifestyleProfile(clerk: clerk)
+                await saveHavePlaceExtras(clerk: clerk)
             }
             if errorMessage != nil {
                 isLoading = false
                 return
             }
 
-            // Upload profile photo and mark onboarded in one call
             var finalFields: [String: Any] = ["onboarded": true]
             if let data = buildProfile.photoData,
                let avatarUrl = try? await ImageUploadService.upload(data, folder: "profiles") {
                 finalFields["avatar_url"] = avatarUrl
             }
 
-            let profile = try await APIClient.shared.updateProfile(
-                clerk: clerk,
-                fields: finalFields
-            )
+            let profile = try await APIClient.shared.updateProfile(clerk: clerk, fields: finalFields)
             completedProfile = profile
             clearDrafts()
             showCelebration = true
@@ -174,6 +176,18 @@ class OnboardingViewModel {
             errorMessage = error.localizedDescription
         }
         isLoading = false
+    }
+
+    private func saveHavePlaceExtras(clerk: Clerk) async {
+        var fields: [String: Any] = [:]
+        fields["spots_available"] = preferences.spotsAvailable
+        if let month = preferences.moveInMonth { fields["move_in_month"] = month }
+        do {
+            _ = try await APIClient.shared.updateLifestyleProfile(clerk: clerk, fields: fields)
+        } catch {
+            print("saveHavePlaceExtras failed: \(error)")
+            errorMessage = error.localizedDescription
+        }
     }
 
     private func clearDrafts() {

@@ -50,42 +50,10 @@ struct RoommatePreferencesView: View {
 
     private var studentPreferences: some View {
         VStack(alignment: .leading, spacing: AppSpacing.xl) {
-            // spots available
-            PreferenceSection(icon: "person.2.fill", title: "SPOTS AVAILABLE") {
-                VStack(alignment: .leading, spacing: AppSpacing.xs) {
-                    Text("Roommates needed")
-                        .font(.body12())
-                        .foregroundStyle(Color(.neutral, 600))
-                    HStack(spacing: AppSpacing.md) {
-                        ForEach(1...4, id: \.self) { n in
-                            circleChip("\(n)", selected: vm.spotsAvailable == n) {
-                                vm.spotsAvailable = n
-                            }
-                        }
-                    }
-                    Text("How many spots do you have?")
-                        .font(.body12())
-                        .foregroundStyle(Color(.neutral, 500))
-                }
-            }
-
-            // move-in month
-            PreferenceSection(icon: "calendar.circle.fill", title: "MOVE-IN MONTH") {
-                let months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
-                              "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
-                FlowLayout(spacing: AppSpacing.xs) {
-                    ForEach(months, id: \.self) { month in
-                        selectableChip(month, selected: vm.moveInMonth == month, minWidth: 52) {
-                            vm.moveInMonth = vm.moveInMonth == month ? nil : month
-                        }
-                    }
-                }
-            }
-
             // gender preference
             PreferenceSection(icon: "person.crop.circle.fill", title: "GENDER PREFERENCE") {
                 let options: [(label: String, value: Int)] = [
-                    ("No preference", 0), ("Women only", 1), ("Men only", 2)
+                    ("No preference", 0), ("Same as me", 1), ("Women only", 2), ("Men only", 3)
                 ]
                 FlowLayout(spacing: AppSpacing.xs) {
                     ForEach(options, id: \.value) { opt in
@@ -101,7 +69,7 @@ struct RoommatePreferencesView: View {
                 let options: [(emoji: String, label: String, sub: String, value: Int)] = [
                     ("🌅", "Early bird", "Up by 7am", 0),
                     ("🌙", "Night owl", "Up past midnight", 1),
-                    ("🎲", "No preference", "Either works", 2),
+                    ("🎲", "Flexible", "Either works", 2),
                 ]
                 HStack(spacing: AppSpacing.sm) {
                     ForEach(options, id: \.value) { opt in
