@@ -6,6 +6,8 @@ import ClerkKit
 @MainActor
 @Observable
 class StudentHomeViewModel {
+    private static let isoFormatter: ISO8601DateFormatter = ISO8601DateFormatter()
+    private static let sharedEncoder: JSONEncoder = JSONEncoder()
     var listings: [ListingResponse] = []
     var applications: [ApplicationResponse] = []
     var favoriteListings: [ListingResponse] = []
@@ -31,7 +33,7 @@ class StudentHomeViewModel {
         }
 
         let pendingAppOps = (try? context.fetch(FetchDescriptor<PendingApplicationOp>())) ?? []
-        let now = ISO8601DateFormatter().string(from: Date())
+        let now = Self.isoFormatter.string(from: Date())
         for op in pendingAppOps where !applications.contains(where: { $0.listingId == op.listingId }) {
             applications.insert(ApplicationResponse(
                 id: "local-\(op.listingId)",
@@ -138,7 +140,7 @@ class StudentHomeViewModel {
             }
             clearPendingOp(for: listing.id)
         } catch {
-            let data = (try? JSONEncoder().encode(listing)) ?? Data()
+            let data = (try? Self.sharedEncoder.encode(listing)) ?? Data()
             clearPendingOp(for: listing.id)
             context.insert(PendingFavoriteOp(
                 listingId: listing.id,
@@ -177,9 +179,13 @@ class StudentHomeViewModel {
     // MARK: - Private
 
     private func mergeFavoritesFromServer(_ fresh: [ListingResponse]) {
-        let pendingOps       = (try? context.fetch(FetchDescriptor<PendingFavoriteOp>())) ?? []
-        let pendingAddIds    = Set(pendingOps.filter { $0.action == "add"    }.map { $0.listingId })
-        let pendingRemoveIds = Set(pendingOps.filter { $0.action == "remove" }.map { $0.listingId })
+        let pendingOps = (try? context.fetch(FetchDescriptor<PendingFavoriteOp>())) ?? []
+        var pendingAddIds = Set<String>()
+        var pendingRemoveIds = Set<String>()
+        for op in pendingOps {
+            if op.action == "add" { pendingAddIds.insert(op.listingId) }
+            else { pendingRemoveIds.insert(op.listingId) }
+        }
 
         let freshIds    = Set(fresh.map { $0.id })
         let existing    = (try? context.fetch(FetchDescriptor<SavedListing>())) ?? []
@@ -231,7 +237,7 @@ class StudentHomeViewModel {
 
     func addLocalPendingApplication(for listing: ListingResponse) {
         guard !applications.contains(where: { $0.listingId == listing.id }) else { return }
-        let now = ISO8601DateFormatter().string(from: Date())
+        let now = Self.isoFormatter.string(from: Date())
         let synthetic = ApplicationResponse(
             id: "local-\(listing.id)",
             listingId: listing.id,

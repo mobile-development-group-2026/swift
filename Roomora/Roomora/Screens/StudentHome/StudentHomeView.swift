@@ -399,25 +399,31 @@ struct StudentHomeView: View {
         }
     }
 
-    private func formatDate(_ iso: String) -> String {
+    private static let isoParserFull: ISO8601DateFormatter = {
         let f = ISO8601DateFormatter()
         f.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-        if let d = f.date(from: iso) {
-            let df = DateFormatter(); df.dateFormat = "MMM d"; return df.string(from: d)
-        }
+        return f
+    }()
+    private static let isoParserBasic: ISO8601DateFormatter = {
+        let f = ISO8601DateFormatter()
+        f.formatOptions = [.withInternetDateTime]
+        return f
+    }()
+    private static let shortDateFormatter: DateFormatter = {
+        let f = DateFormatter(); f.dateFormat = "MMM d"; return f
+    }()
+    private static let longDateFormatter: DateFormatter = {
+        let f = DateFormatter(); f.dateFormat = "MMM d 'at' h:mm a"; return f
+    }()
+
+    private func formatDate(_ iso: String) -> String {
+        if let d = Self.isoParserFull.date(from: iso) { return Self.shortDateFormatter.string(from: d) }
         return String(iso.prefix(10))
     }
 
     private func formatDateTime(_ iso: String) -> String {
-        let f = ISO8601DateFormatter()
-        f.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-        if let d = f.date(from: iso) {
-            let df = DateFormatter(); df.dateFormat = "MMM d 'at' h:mm a"; return df.string(from: d)
-        }
-        f.formatOptions = [.withInternetDateTime]
-        if let d = f.date(from: iso) {
-            let df = DateFormatter(); df.dateFormat = "MMM d 'at' h:mm a"; return df.string(from: d)
-        }
+        if let d = Self.isoParserFull.date(from: iso) { return Self.longDateFormatter.string(from: d) }
+        if let d = Self.isoParserBasic.date(from: iso) { return Self.longDateFormatter.string(from: d) }
         return iso
     }
 
