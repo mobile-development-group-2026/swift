@@ -41,11 +41,9 @@ class OnboardingViewModel {
                 await saveStudentProfile(clerk: clerk)
             }
         } else if step == 1 {
-            // Everyone fills out lifestyle — save it now
             preferences.save()
             await saveLifestyleProfile(clerk: clerk)
         } else if step == 2 {
-            // Situation choice
             situation.save()
             if let sit = situation.situation {
                 let fields: [String: Any] = ["housing_situation": sit.rawValue]
@@ -94,7 +92,7 @@ class OnboardingViewModel {
         var fields: [String: Any] = [:]
 
         let bp = buildProfile
-        if !bp.university.isEmpty { fields["university"] = bp.university }
+        if let university = bp.university { fields["university"] = university }
         if let major = bp.major { fields["major"] = major }
         if let year = bp.birthYear { fields["birth_year"] = year }
         if let year = bp.graduationYear { fields["graduation_year"] = year }
@@ -133,7 +131,7 @@ class OnboardingViewModel {
     var canContinue: Bool {
         switch step {
         case 0: return buildProfile.canContinue
-        case 1: return true  // lifestyle — all optional
+        case 1: return true
         case 2: return isLandlord ? newListing.canContinue : situation.canContinue
         default: return true
         }
@@ -153,7 +151,6 @@ class OnboardingViewModel {
                 listingPrefs.save()
                 await saveListingProfile(clerk: clerk)
             } else {
-                // havePlace — save spots + move-in month
                 preferences.save()
                 await saveHavePlaceExtras(clerk: clerk)
             }

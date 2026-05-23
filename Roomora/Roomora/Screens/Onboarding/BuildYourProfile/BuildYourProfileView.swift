@@ -90,13 +90,37 @@ struct BuildYourProfileView: View {
                 }
 
                 if isStudent {
-                    // university
-                    AppTextField(
-                        icon: "building.columns",
-                        label: "UNIVERSITY",
-                        placeholder: "e.g. Tec de Monterrey",
-                        text: $vm.university
-                    )
+                    // university picker
+                    VStack(alignment: .leading, spacing: AppSpacing.xs) {
+                        Text("UNIVERSITY")
+                            .font(.body10(.semiBold))
+                            .foregroundStyle(Color(.neutral, 700))
+
+                        Menu {
+                            ForEach(BuildYourProfileViewModel.universities, id: \.self) { uni in
+                                Button(uni) { vm.university = uni }
+                            }
+                        } label: {
+                            HStack(spacing: AppSpacing.sm) {
+                                Image(systemName: "building.columns")
+                                    .foregroundStyle(Color(.neutral, 500))
+                                    .font(.body16())
+                                Text(vm.university ?? "Select your university")
+                                    .font(.body16())
+                                    .foregroundStyle(vm.university == nil ? Color(.neutral, 500) : Color(.neutral, 900))
+                                Spacer()
+                                Image(systemName: "chevron.down")
+                                    .font(.system(size: 12))
+                                    .foregroundStyle(Color(.neutral, 500))
+                            }
+                            .padding(AppSpacing.md)
+                            .background(
+                                RoundedRectangle(cornerRadius: 12)
+                                    .stroke(Color(.neutral, 500), lineWidth: 1)
+                            )
+                        }
+                        .buttonStyle(.plain)
+                    }
 
                     // major
                     VStack(alignment: .leading, spacing: AppSpacing.xs) {
