@@ -1,4 +1,5 @@
 import SwiftUI
+import ClerkKit
 
 struct StudentHomeView: View {
     @Environment(UserSession.self) private var session
@@ -8,6 +9,7 @@ struct StudentHomeView: View {
     @State private var selectedTab: HomeTab = .roommate
     @State private var activeNavTab: NavTab = .discover
     @State private var selectedListing: ListingResponse?
+    @State private var showRoommateProfile = false
 
     private var hasPlace: Bool {
         session.profile?.housingSituation == "havePlace"
@@ -48,11 +50,18 @@ struct StudentHomeView: View {
             case .activity:
                 myApplicationsContent
             case .profile:
-                Spacer()
-                Text("Profile")
-                    .font(.body16(.semiBold))
-                    .foregroundStyle(Color(.neutral, 400))
-                Spacer()
+                VStack {
+                    Spacer()
+                    AppButton(title: "Test Roommate Profile", variant: .primary) {
+                        showRoommateProfile = true
+                    }
+                    .padding(.horizontal, AppSpacing.lg)
+                    Spacer()
+                }
+                .sheet(isPresented: $showRoommateProfile) {
+                    RoommateProfileView(userId: "4bdce70a-cf28-4f97-a4ae-861c0954631b")
+                        .environment(Clerk.shared)
+                }
             }
         }
         .safeAreaInset(edge: .bottom, spacing: 0) {
