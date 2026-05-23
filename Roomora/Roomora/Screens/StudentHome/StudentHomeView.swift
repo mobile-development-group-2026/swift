@@ -5,11 +5,17 @@ struct StudentHomeView: View {
 
     @State private var vm = StudentHomeViewModel()
     @State private var roommateVM = RoommateViewModel()
+    @State private var selectedTab: HomeTab = .roommate
     @State private var activeNavTab: NavTab = .discover
     @State private var selectedListing: ListingResponse?
 
     private var hasPlace: Bool {
         session.profile?.housingSituation == "havePlace"
+    }
+
+    enum HomeTab: String, CaseIterable {
+        case roommate = "Roommate"
+        case housing = "Housing"
     }
 
     enum NavTab: String, CaseIterable {
@@ -96,7 +102,13 @@ struct StudentHomeView: View {
                 topBar
                 proximityTrackingBanner
 
-                if hasPlace {
+                // havePlace: roommate feed only, no toggle
+                // needPlace: toggle between roommate feed and listings
+                if !hasPlace {
+                    tabPicker
+                }
+
+                if hasPlace || selectedTab == .roommate {
                     RoommateListView(vm: roommateVM)
                 } else if vm.isLoading {
                     ProgressView()
@@ -120,7 +132,7 @@ struct StudentHomeView: View {
             .padding(.bottom, AppSpacing.lg)
         }
         .refreshable {
-            if hasPlace {
+            if hasPlace || selectedTab == .roommate {
                 await roommateVM.refresh()
             } else {
                 async let listings: () = vm.loadListings()
@@ -201,6 +213,33 @@ struct StudentHomeView: View {
         .background(
             RoundedRectangle(cornerRadius: 14)
                 .fill(.white)
+        )
+        .padding(.horizontal, AppSpacing.lg)
+    }
+
+    // MARK: - Tab Picker
+
+    private var tabPicker: some View {
+        HStack(spacing: 0) {
+            ForEach(HomeTab.allCases, id: \.self) { tab in
+                ZStack {
+                    RoundedRectangle(cornerRadius: 12)
+                        .fill(selectedTab == tab ? Color(.purple, 500) : Color.clear)
+                    Text(tab.rawValue)
+                        .font(.body16(.semiBold))
+                        .foregroundStyle(selectedTab == tab ? .white : Color(.neutral, 600))
+                        .padding(.vertical, AppSpacing.sm)
+                }
+                .contentShape(Rectangle())
+                .onTapGesture { selectedTab = tab }
+                .frame(maxWidth: .infinity)
+            }
+        }
+        .padding(4)
+        .background(
+            RoundedRectangle(cornerRadius: 14)
+                .fill(.white)
+                .shadow(color: .black.opacity(0.06), radius: 6, y: 2)
         )
         .padding(.horizontal, AppSpacing.lg)
     }
