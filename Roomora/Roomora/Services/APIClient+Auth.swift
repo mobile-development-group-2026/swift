@@ -153,6 +153,7 @@ struct SyncResponse: Codable {
     let onboarded: Bool?
     let createdAt: String
     let updatedAt: String
+    let housingSituation: String?
     let studentProfile: StudentProfileResponse?
     let lifestyleProfile: LifestyleProfileResponse?
     let listingProfile: ListingProfileResponse?
