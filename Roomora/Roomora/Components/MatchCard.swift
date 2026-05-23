@@ -1,15 +1,10 @@
-//
-//  MatchCard.swift
-//  Roomora
-//
-//  Created by Andy on 22/05/26.
-//
-
-
 import SwiftUI
+import ClerkKit
 
 struct MatchCard: View {
     let match: RoommateMatch
+    
+    @State private var showChat = false
 
     var body: some View {
         HStack(spacing: AppSpacing.md) {
@@ -72,9 +67,9 @@ struct MatchCard: View {
 
             Spacer()
 
-            // Message button placeholder
+            // Message button
             Button {
-                // TODO: open messaging
+                showChat = true
             } label: {
                 Image(systemName: "message.fill")
                     .font(.system(size: 16))
@@ -85,10 +80,11 @@ struct MatchCard: View {
             .buttonStyle(.plain)
         }
         .padding(AppSpacing.md)
-        .background(
-            RoundedRectangle(cornerRadius: 16)
-                .fill(.white)
-        )
+        .background(RoundedRectangle(cornerRadius: 16).fill(.white))
         .shadow(color: .black.opacity(0.05), radius: 8, y: 2)
+        .sheet(isPresented: $showChat) {
+            ChatView(match: match)
+                .environment(Clerk.shared)
+        }
     }
 }
