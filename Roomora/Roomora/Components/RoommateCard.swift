@@ -5,17 +5,15 @@ struct RoommateCard: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            // ── Top section: avatar + info ───────────────────────────
+            
             HStack(alignment: .top, spacing: AppSpacing.md) {
                 avatar
 
                 VStack(alignment: .leading, spacing: AppSpacing.xs) {
-                    // Name
                     Text(roommate.fullName)
                         .font(.h3(.bold))
                         .foregroundStyle(Color(.neutral, 900))
 
-                    // Major + age
                     if let major = roommate.major {
                         HStack(spacing: AppSpacing.xs) {
                             Text(major)
@@ -31,7 +29,6 @@ struct RoommateCard: View {
                         }
                     }
 
-                    // University
                     if let uni = roommate.university {
                         HStack(spacing: 4) {
                             Image(systemName: "building.columns")
@@ -44,7 +41,6 @@ struct RoommateCard: View {
                         }
                     }
 
-                    // Budget — only show if set and > 0
                     if let budget = roommate.maxBudget, budget > 0 {
                         HStack(spacing: 4) {
                             Image(systemName: "dollarsign.circle")
@@ -61,45 +57,14 @@ struct RoommateCard: View {
             }
             .padding(AppSpacing.md)
 
-            // ── Lifestyle pills ──────────────────────────────────────
-            let chips = lifestyleChips
-            if !chips.isEmpty {
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: AppSpacing.xs) {
-                        ForEach(chips, id: \.self) { chip in
-                            Text(chip)
-                                .font(.body12())
-                                .foregroundStyle(Color(.neutral, 700))
-                                .padding(.horizontal, AppSpacing.sm)
-                                .padding(.vertical, 6)
-                                .background(
-                                    Capsule()
-                                        .fill(Color(.neutral, 100))
-                                )
-                        }
+            let allChips = lifestyleChips + roommate.lifestyleTags
+            if !allChips.isEmpty {
+                FlowLayout(spacing: AppSpacing.xs) {
+                    ForEach(allChips, id: \.self) { chip in
+                        chipView(chip, isTag: roommate.lifestyleTags.contains(chip))
                     }
-                    .padding(.horizontal, AppSpacing.md)
                 }
-                .padding(.bottom, AppSpacing.md)
-            }
-
-            // ── Tags ─────────────────────────────────────────────────
-            if !roommate.lifestyleTags.isEmpty {
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: AppSpacing.xs) {
-                        ForEach(roommate.lifestyleTags, id: \.self) { tag in
-                            Text(tag)
-                                .font(.body12())
-                                .foregroundStyle(Color(.purple, 700))
-                                .padding(.horizontal, AppSpacing.sm)
-                                .padding(.vertical, 6)
-                                .background(
-                                    Capsule().fill(Color(.purple, 100))
-                                )
-                        }
-                    }
-                    .padding(.horizontal, AppSpacing.md)
-                }
+                .padding(.horizontal, AppSpacing.md)
                 .padding(.bottom, AppSpacing.md)
             }
         }
@@ -110,7 +75,7 @@ struct RoommateCard: View {
         .shadow(color: Color(.purple, 900).opacity(0.06), radius: 12, x: 0, y: 4)
     }
 
-    // MARK: - Avatar
+    
 
     private var avatar: some View {
         ZStack {
@@ -156,13 +121,23 @@ struct RoommateCard: View {
             .foregroundStyle(.white)
     }
 
-    // MARK: - Lifestyle chips (sleep, cleanliness, move-in)
+    private func chipView(_ label: String, isTag: Bool) -> some View {
+        Text(label)
+            .font(.body12())
+            .foregroundStyle(isTag ? Color(.purple, 700) : Color(.neutral, 700))
+            .padding(.horizontal, AppSpacing.sm)
+            .padding(.vertical, 6)
+            .background(
+                Capsule()
+                    .fill(isTag ? Color(.purple, 100) : Color(.neutral, 100))
+            )
+    }
 
     private var lifestyleChips: [String] {
         var chips: [String] = []
         if roommate.sleepSchedule != nil { chips.append(roommate.sleepScheduleLabel) }
         if roommate.cleanlinessLevel != nil { chips.append(roommate.cleanlinessLabel) }
-        if let month = roommate.moveInMonth { chips.append("📅 \(month)") }
+        if let month = roommate.moveInMonth { chips.append("\(month)") }
         return chips
     }
 }
