@@ -12,13 +12,13 @@ struct RoommatePreferencesView: View {
                 // header
                 VStack(alignment: .leading, spacing: AppSpacing.xxs) {
                     if isStudent {
-                        Text("Your ideal")
+                        Text("Your")
                             .font(.h1(.bold))
                             .foregroundStyle(Color(.neutral, 900))
-                        Text("roommate")
+                        Text("lifestyle")
                             .font(.h1(.bold))
                             .foregroundStyle(Color(.purple, 500))
-                        Text("Help us find someone you'll actually want to live with.")
+                        Text("Tell us about yourself so we can find your perfect match.")
                             .font(.body14())
                             .foregroundStyle(Color(.neutral, 600))
                             .padding(.top, AppSpacing.xxs)
@@ -85,7 +85,7 @@ struct RoommatePreferencesView: View {
             // gender preference
             PreferenceSection(icon: "person.crop.circle.fill", title: "GENDER PREFERENCE") {
                 let options: [(label: String, value: Int)] = [
-                    ("No preference", 0), ("Same as me", 1), ("Women only", 2), ("Men only", 3)
+                    ("No preference", 0), ("Women only", 1), ("Men only", 2)
                 ]
                 FlowLayout(spacing: AppSpacing.xs) {
                     ForEach(options, id: \.value) { opt in
@@ -97,7 +97,7 @@ struct RoommatePreferencesView: View {
             }
 
             // sleep schedule
-            PreferenceSection(icon: "moon.stars.fill", title: "SLEEP SCHEDULE") {
+            PreferenceSection(icon: "moon.stars.fill", title: "YOUR SLEEP SCHEDULE") {
                 let options: [(emoji: String, label: String, sub: String, value: Int)] = [
                     ("🌅", "Early bird", "Up by 7am", 0),
                     ("🌙", "Night owl", "Up past midnight", 1),
@@ -118,7 +118,7 @@ struct RoommatePreferencesView: View {
             }
 
             // cleanliness
-            PreferenceSection(icon: "sparkles", title: "CLEANLINESS") {
+            PreferenceSection(icon: "sparkles", title: "YOUR CLEANLINESS LEVEL") {
                 let options: [(emoji: String, label: String, sub: String, value: Int)] = [
                     ("✨", "Very tidy", "Always clean", 0),
                     ("🧹", "Moderate", "Clean enough", 1),
@@ -139,7 +139,7 @@ struct RoommatePreferencesView: View {
             }
 
             // lifestyle
-            PreferenceSection(icon: "heart.fill", title: "LIFESTYLE") {
+            PreferenceSection(icon: "heart.fill", title: "YOUR LIFESTYLE") {
                 let options: [(emoji: String, label: String, sub: String)] = [
                     ("🚭", "Non-smoker", "No smoking indoors"),
                     ("🐾", "Pet-friendly", "Fine with animals"),
