@@ -6,7 +6,7 @@ import Foundation
 @Model
 final class SavedListing {
     @Attribute(.unique) var listingId: String
-    var listingData: Data   // JSON-encoded ListingResponse
+    var listingData: Data
     var savedAt: Date
 
     init(listingId: String, listingData: Data) {
@@ -25,8 +25,8 @@ final class SavedListing {
 @Model
 final class PendingFavoriteOp {
     var listingId: String
-    var action: String      // "add" or "remove"
-    var listingData: Data   // snapshot of ListingResponse — needed to re-insert if server sync overwrites
+    var action: String
+    var listingData: Data
     var createdAt: Date
 
     init(listingId: String, action: String, listingData: Data) {
@@ -43,7 +43,7 @@ final class PendingFavoriteOp {
 final class PendingApplicationOp {
     var listingId: String
     var studentNotes: String?
-    var preferredVisitAt: String?   // ISO8601 string, nil if no visit requested
+    var preferredVisitAt: String?
     var createdAt: Date
 
     init(listingId: String, studentNotes: String?, preferredVisitAt: String?) {
@@ -54,9 +54,26 @@ final class PendingApplicationOp {
     }
 }
 
+/// A like that failed to reach the server (offline).
+/// Replayed in order when connectivity is restored.
+@Model
+final class PendingLikeOp {
+    var likedUserId: String
+    var createdAt: Date
+
+    init(likedUserId: String) {
+        self.likedUserId = likedUserId
+        self.createdAt = Date()
+    }
+}
+
 extension ModelContainer {
-    /// Shared container — used by both the SwiftUI environment and ViewModel init.
     static let roomora: ModelContainer = {
-        try! ModelContainer(for: SavedListing.self, PendingFavoriteOp.self, PendingApplicationOp.self)
+        try! ModelContainer(
+            for: SavedListing.self,
+                PendingFavoriteOp.self,
+                PendingApplicationOp.self,
+                PendingLikeOp.self
+        )
     }()
 }

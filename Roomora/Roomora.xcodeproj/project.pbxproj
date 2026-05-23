@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		2715B0AB2F63819B00FF286F /* ClerkKit in Frameworks */ = {isa = PBXBuildFile; productRef = 2715B0AA2F63819B00FF286F /* ClerkKit */; };
 		2715B0AD2F63819B00FF286F /* ClerkKitUI in Frameworks */ = {isa = PBXBuildFile; productRef = 2715B0AC2F63819B00FF286F /* ClerkKitUI */; };
+		273E68652FC15F71009B0D16 /* Lottie in Frameworks */ = {isa = PBXBuildFile; productRef = 273E68642FC15F71009B0D16 /* Lottie */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -43,6 +44,7 @@
 			files = (
 				2715B0AB2F63819B00FF286F /* ClerkKit in Frameworks */,
 				2715B0AD2F63819B00FF286F /* ClerkKitUI in Frameworks */,
+				273E68652FC15F71009B0D16 /* Lottie in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -87,6 +89,7 @@
 			packageProductDependencies = (
 				2715B0AA2F63819B00FF286F /* ClerkKit */,
 				2715B0AC2F63819B00FF286F /* ClerkKitUI */,
+				273E68642FC15F71009B0D16 /* Lottie */,
 			);
 			productName = Roomora;
 			productReference = 2715B09B2F637EF500FF286F /* Roomora.app */;
@@ -118,6 +121,7 @@
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
 				2715B0A92F63819B00FF286F /* XCRemoteSwiftPackageReference "clerk-ios" */,
+				273E68632FC15F71009B0D16 /* XCRemoteSwiftPackageReference "lottie-spm" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 2715B09C2F637EF500FF286F /* Products */;
@@ -371,6 +375,14 @@
 				minimumVersion = 1.0.5;
 			};
 		};
+		273E68632FC15F71009B0D16 /* XCRemoteSwiftPackageReference "lottie-spm" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/airbnb/lottie-spm";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 4.6.0;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -383,6 +395,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 2715B0A92F63819B00FF286F /* XCRemoteSwiftPackageReference "clerk-ios" */;
 			productName = ClerkKitUI;
+		};
+		273E68642FC15F71009B0D16 /* Lottie */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 273E68632FC15F71009B0D16 /* XCRemoteSwiftPackageReference "lottie-spm" */;
+			productName = Lottie;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

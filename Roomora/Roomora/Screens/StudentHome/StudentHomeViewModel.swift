@@ -10,9 +10,11 @@ class StudentHomeViewModel {
     var applications: [ApplicationResponse] = []
     var favoriteListings: [ListingResponse] = []
     var favoritedIds: Set<String> = []
+    var matches: [RoommateMatch] = []
     var isLoading = false
     var isLoadingApplications = false
     var isLoadingFavorites = false
+    var isLoadingMatches = false
     var proximityStatusText = "Idle"
     var pendingProximityEvents = 0
 
@@ -20,7 +22,6 @@ class StudentHomeViewModel {
     private var context: ModelContext { ModelContainer.roomora.mainContext }
 
     init() {
-        // Pre-populate synchronously so first render has stars and status ready.
         let saved = (try? context.fetch(FetchDescriptor<SavedListing>())) ?? []
         favoriteListings = saved.compactMap { $0.listing }
         favoritedIds = Set(saved.map(\.listingId))
@@ -29,7 +30,6 @@ class StudentHomeViewModel {
             applications = cached
         }
 
-        // Re-inject synthetics for any ops that survived a kill — they stay until flush succeeds.
         let pendingAppOps = (try? context.fetch(FetchDescriptor<PendingApplicationOp>())) ?? []
         let now = ISO8601DateFormatter().string(from: Date())
         for op in pendingAppOps where !applications.contains(where: { $0.listingId == op.listingId }) {
@@ -49,7 +49,6 @@ class StudentHomeViewModel {
             ), at: 0)
         }
 
-        // Flush all pending ops whenever network is restored.
         networkMonitor.pathUpdateHandler = { [weak self] path in
             guard path.status == .satisfied else { return }
             Task { @MainActor [weak self] in
@@ -92,6 +91,16 @@ class StudentHomeViewModel {
         isLoadingApplications = false
     }
 
+    // MARK: - Matches
+
+    func loadMatches() async {
+        isLoadingMatches = matches.isEmpty
+        do {
+            matches = try await APIClient.shared.fetchMatches(clerk: Clerk.shared)
+        } catch { }
+        isLoadingMatches = false
+    }
+
     // MARK: - Favorites
 
     func loadFavorites() async {
@@ -106,11 +115,9 @@ class StudentHomeViewModel {
         favoritedIds.contains(listingId)
     }
 
-    /// Writes to SwiftData immediately. On network failure queues the op instead of rolling back.
     func toggleFavorite(listing: ListingResponse) async {
         let wasOn = favoritedIds.contains(listing.id)
 
-        // Optimistic UI + SwiftData update
         if wasOn {
             favoritedIds.remove(listing.id)
             favoriteListings.removeAll { $0.id == listing.id }
@@ -129,7 +136,6 @@ class StudentHomeViewModel {
             }
             clearPendingOp(for: listing.id)
         } catch {
-            // Network failed — queue for later, keep SwiftData state as-is (no rollback).
             let data = (try? JSONEncoder().encode(listing)) ?? Data()
             clearPendingOp(for: listing.id)
             context.insert(PendingFavoriteOp(
@@ -141,7 +147,6 @@ class StudentHomeViewModel {
         }
     }
 
-    /// Replays pending ops in chronological order when network is restored.
     func flushPendingOps() async {
         let descriptor = FetchDescriptor<PendingFavoriteOp>(
             sortBy: [SortDescriptor(\.createdAt)]
@@ -158,11 +163,10 @@ class StudentHomeViewModel {
                 context.delete(op)
                 try? context.save()
             } catch {
-                break // still offline — retry next time network returns
+                break
             }
         }
 
-        // Pull fresh server state after flush
         if let fresh = try? await APIClient.shared.fetchFavorites(clerk: Clerk.shared) {
             mergeFavoritesFromServer(fresh)
         }
@@ -170,17 +174,15 @@ class StudentHomeViewModel {
 
     // MARK: - Private
 
-    /// Merges server favorites into SwiftData, preserving any pending offline ops.
     private func mergeFavoritesFromServer(_ fresh: [ListingResponse]) {
-        let pendingOps      = (try? context.fetch(FetchDescriptor<PendingFavoriteOp>())) ?? []
-        let pendingAddIds   = Set(pendingOps.filter { $0.action == "add"    }.map { $0.listingId })
+        let pendingOps       = (try? context.fetch(FetchDescriptor<PendingFavoriteOp>())) ?? []
+        let pendingAddIds    = Set(pendingOps.filter { $0.action == "add"    }.map { $0.listingId })
         let pendingRemoveIds = Set(pendingOps.filter { $0.action == "remove" }.map { $0.listingId })
 
         let freshIds    = Set(fresh.map { $0.id })
         let existing    = (try? context.fetch(FetchDescriptor<SavedListing>())) ?? []
         let existingIds = Set(existing.map { $0.listingId })
 
-        // Add server items not yet in SwiftData — skip pending removes (user deleted offline)
         for listing in fresh where !pendingRemoveIds.contains(listing.id) {
             if !existingIds.contains(listing.id),
                let data = try? JSONEncoder().encode(listing) {
@@ -188,7 +190,6 @@ class StudentHomeViewModel {
             }
         }
 
-        // Remove items gone from server — skip pending adds (user favorited offline)
         for item in existing where !freshIds.contains(item.listingId) && !pendingAddIds.contains(item.listingId) {
             context.delete(item)
         }
@@ -226,8 +227,6 @@ class StudentHomeViewModel {
         }
     }
 
-    /// Inserts a synthetic pending application immediately so the card chip and Activity tab
-    /// update before the server is reachable. Replaced by real data after flush.
     func addLocalPendingApplication(for listing: ListingResponse) {
         guard !applications.contains(where: { $0.listingId == listing.id }) else { return }
         let now = ISO8601DateFormatter().string(from: Date())
@@ -248,9 +247,6 @@ class StudentHomeViewModel {
         applications.insert(synthetic, at: 0)
     }
 
-    // MARK: - Pending Applications
-
-    /// Submits any applications that were queued while offline, in chronological order.
     func flushPendingApplicationOps() async {
         let descriptor = FetchDescriptor<PendingApplicationOp>(
             sortBy: [SortDescriptor(\.createdAt)]
@@ -259,8 +255,8 @@ class StudentHomeViewModel {
 
         for op in ops {
             var fields: [String: Any] = [:]
-            if let notes = op.studentNotes       { fields["student_notes"]      = notes }
-            if let visit = op.preferredVisitAt   { fields["preferred_visit_at"] = visit }
+            if let notes = op.studentNotes     { fields["student_notes"]      = notes }
+            if let visit = op.preferredVisitAt { fields["preferred_visit_at"] = visit }
 
             do {
                 try await APIClient.shared.createApplication(
@@ -272,18 +268,16 @@ class StudentHomeViewModel {
                 try? context.save()
             } catch let apiErr as APIError {
                 if case .server(let status, _) = apiErr, (400...499).contains(status) {
-                    // Server rejected (e.g. already applied) — discard, don't retry.
                     context.delete(op)
                     try? context.save()
                 } else {
-                    break // network/5xx — still offline, retry next time
+                    break
                 }
             } catch {
-                break // unknown network error, retry next time
+                break
             }
         }
 
-        // Refresh applications list after flush
         await loadMyApplications()
     }
 
