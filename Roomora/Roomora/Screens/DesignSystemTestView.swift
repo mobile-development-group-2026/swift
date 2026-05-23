@@ -1,6 +1,10 @@
 import SwiftUI
+import ClerkKit
 
 struct DesignSystemTestView: View {
+    @State private var showRoommateProfile = false
+    // id real hardcodeado para prueba
+    private let devRoommateId = "4bdce70a-cf28-4f97-a4ae-861c0954631b"
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: AppSpacing.xxxl) {
@@ -68,8 +72,18 @@ struct DesignSystemTestView: View {
                     }
                     PillBadge(label: "Map search", dotColor: Color(.purple, 500))
                 }
+                Section("Roommate Profile (Dev)") {
+                    AppButton(title: "Open Roommate Profile", variant: .secondary) {
+                        
+                        showRoommateProfile = true
+                    }
+                }
             }
             .padding(24)
+        }
+        .sheet(isPresented: $showRoommateProfile) {
+            RoommateProfileView(userId: devRoommateId)
+                .environment(Clerk.shared)
         }
     }
 
