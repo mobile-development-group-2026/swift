@@ -4,7 +4,7 @@ import PhotosUI
 @Observable
 class BuildYourProfileViewModel {
     var bio = ""
-    var university = ""
+    var university: String?
     var major: String?
     var birthYear: Int?
     var graduationYear: Int?
@@ -16,6 +16,20 @@ class BuildYourProfileViewModel {
 
     static let birthYears = Array(1970...Calendar.current.component(.year, from: Date()))
     static let gradYears = Array(1970...Calendar.current.component(.year, from: Date()) + 5)
+
+    static let universities = [
+        "Universidad de los Andes",
+        "Universidad Nacional de Colombia",
+        "Pontificia Universidad Javeriana",
+        "Universidad del Rosario",
+        "Universidad de Antioquia",
+        "Universidad EAFIT",
+        "Universidad Externado de Colombia",
+        "Universidad Pontificia Bolivariana",
+        "Universidad de La Sabana",
+        "Universidad ICESI",
+        "Other"
+    ]
 
     static let majors = [
         "Computer Science",
@@ -95,14 +109,14 @@ class BuildYourProfileViewModel {
     }
 
     var canContinue: Bool {
-        selectedHobbies.count > 0
+        selectedHobbies.count > 0 && university != nil
     }
 
     // MARK: - Draft persistence
 
     private struct Draft: Codable {
         var bio: String
-        var university: String
+        var university: String?
         var major: String?
         var birthYear: Int?
         var graduationYear: Int?
