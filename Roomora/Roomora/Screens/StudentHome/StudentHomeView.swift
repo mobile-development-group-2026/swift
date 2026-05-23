@@ -9,7 +9,6 @@ struct StudentHomeView: View {
     @State private var selectedTab: HomeTab = .roommate
     @State private var activeNavTab: NavTab = .discover
     @State private var selectedListing: ListingResponse?
-    @State private var showRoommateProfile = false
     @State private var showRoommateFilter = false
     @State private var showListingFilter = false
     @State private var roommateFilter = RoommateFilter()
@@ -62,18 +61,8 @@ struct StudentHomeView: View {
             case .activity:
                 activityContent
             case .profile:
-                VStack {
-                    Spacer()
-                    AppButton(title: "Test Roommate Profile", variant: .primary) {
-                        showRoommateProfile = true
-                    }
-                    .padding(.horizontal, AppSpacing.lg)
-                    Spacer()
-                }
-                .sheet(isPresented: $showRoommateProfile) {
-                    RoommateProfileView(userId: "4bdce70a-cf28-4f97-a4ae-861c0954631b")
-                        .environment(Clerk.shared)
-                }
+                MyProfileView()
+                    .environment(Clerk.shared)
             }
         }
         .safeAreaInset(edge: .bottom, spacing: 0) { bottomNav }
