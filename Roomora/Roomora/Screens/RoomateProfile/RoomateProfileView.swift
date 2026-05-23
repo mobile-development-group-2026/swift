@@ -178,12 +178,6 @@ struct RoommateProfileView: View {
                     }
                 }
             }
-
-        
-            contactButton
-                .padding(.horizontal, AppSpacing.lg)
-                .padding(.top, AppSpacing.lg)
-                .padding(.bottom, AppSpacing.xxxl)
         }
         .background(.white)
     }
@@ -296,12 +290,6 @@ struct RoommateProfileView: View {
     }
 
     
-
-    private var contactButton: some View {
-        AppButton(title: "Contact", variant: .primary) {
-            
-        }
-    }
 
     
 
