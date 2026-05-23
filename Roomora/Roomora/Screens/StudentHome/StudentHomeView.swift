@@ -114,7 +114,6 @@ struct StudentHomeView: View {
         VStack(spacing: 0) {
             VStack(alignment: .leading, spacing: AppSpacing.sm) {
                 topBar
-                proximityTrackingBanner
                 if !hasPlace {
                     tabPicker
                 }
@@ -196,37 +195,6 @@ struct StudentHomeView: View {
         .padding(.top, AppSpacing.sm)
     }
 
-    private var proximityTrackingBanner: some View {
-        HStack(alignment: .center, spacing: AppSpacing.sm) {
-            Image(systemName: vm.pendingProximityEvents > 0 ? "antenna.radiowaves.left.and.right.slash" : "location.circle.fill")
-                .font(.system(size: 18))
-                .foregroundStyle(vm.pendingProximityEvents > 0 ? Color(.yellow, 700) : Color(.purple, 500))
-
-            VStack(alignment: .leading, spacing: 2) {
-                Text("Nearby-home detection")
-                    .font(.body12(.semiBold))
-                    .foregroundStyle(Color(.neutral, 800))
-                Text(vm.pendingProximityEvents > 0 ? "\(vm.proximityStatusText). Events are stored locally until connection is back." : vm.proximityStatusText)
-                    .font(.body10())
-                    .foregroundStyle(Color(.neutral, 500))
-            }
-
-            Spacer()
-
-            if vm.pendingProximityEvents > 0 {
-                Text("\(vm.pendingProximityEvents)")
-                    .font(.body10(.bold))
-                    .foregroundStyle(Color(.yellow, 800))
-                    .padding(.horizontal, AppSpacing.xs)
-                    .padding(.vertical, 4)
-                    .background(Capsule().fill(Color(.yellow, 100)))
-            }
-        }
-        .padding(.horizontal, AppSpacing.md)
-        .padding(.vertical, AppSpacing.sm)
-        .background(RoundedRectangle(cornerRadius: 14).fill(.white))
-        .padding(.horizontal, AppSpacing.lg)
-    }
 
     // MARK: - Tab Picker
 

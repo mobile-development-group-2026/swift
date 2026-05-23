@@ -1,11 +1,12 @@
 import SwiftUI
+import Lottie
 
 struct RoommateCard: View {
     let roommate: RoommateStudent
     var onLike: () async -> Bool = { false }
 
     @State private var isLiking = false
-    @State private var showMatch = false
+    @State private var playHeart = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: AppSpacing.sm) {
@@ -49,24 +50,37 @@ struct RoommateCard: View {
 
                 Spacer()
 
-                // Heart button
-                Button {
-                    guard !isLiking else { return }
-                    isLiking = true
-                    Task {
-                        let matched = await onLike()
-                        if matched { showMatch = true }
-                        isLiking = false
+                // Heart button with Lottie burst
+                ZStack {
+                    // Lottie burst — plays once on like
+                    if playHeart {
+                        LottieView(animation: .named("heart_burst"))
+                            .playing(loopMode: .playOnce)
+                            .frame(width: 80, height: 80)
                     }
-                } label: {
-                    Image(systemName: isLiking ? "heart.fill" : "heart")
-                        .font(.system(size: 22))
-                        .foregroundStyle(isLiking ? Color(.red, 500) : Color(.neutral, 400))
-                        .frame(width: 44, height: 44)
-                        .background(Circle().fill(Color(.neutral, 100)))
+
+                    // Static heart — hidden while animation plays
+                    Button {
+                        guard !isLiking else { return }
+                        isLiking = true
+                        playHeart = true
+                        Task {
+                            // Wait for animation to finish before triggering like
+                            try? await Task.sleep(for: .milliseconds(800))
+                            _ = await onLike()
+                            isLiking = false
+                        }
+                    } label: {
+                        Image(systemName: "heart")
+                            .font(.system(size: 22))
+                            .foregroundStyle(playHeart ? Color.clear : Color(.neutral, 400))
+                            .frame(width: 44, height: 44)
+                            .background(Circle().fill(Color(.neutral, 100)))
+                    }
+                    .buttonStyle(.plain)
+                    .disabled(isLiking)
                 }
-                .buttonStyle(.plain)
-                .disabled(isLiking)
+                .frame(width: 44, height: 44)
             }
 
             // Bio preview
@@ -136,11 +150,6 @@ struct RoommateCard: View {
         .padding(AppSpacing.md)
         .background(RoundedRectangle(cornerRadius: 16).fill(.white))
         .shadow(color: .black.opacity(0.05), radius: 10, x: 0, y: 3)
-        .alert("It's a match! 🎉", isPresented: $showMatch) {
-            Button("Awesome!") { }
-        } message: {
-            Text("You and \(roommate.firstName) liked each other. Check Activity to message them.")
-        }
     }
 
     // MARK: - Avatar
