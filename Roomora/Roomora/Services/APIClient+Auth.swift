@@ -86,8 +86,6 @@ struct ListingResponse: Codable, Identifiable, Hashable {
     let leaseTermMonths: Int?
     let bedrooms: Int?
     let bathrooms: Int?
-    let latitude: Double?
-    let longitude: Double?
     let amenities: [String]?
     let rules: [String]?
     let status: String

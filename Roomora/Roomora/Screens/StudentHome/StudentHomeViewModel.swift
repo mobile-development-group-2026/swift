@@ -75,7 +75,9 @@ class StudentHomeViewModel {
             CacheService.save(Array(fresh.prefix(50)), key: "listings")
             StudentProximityTracker.shared.configure(with: listings)
             StudentProximityTracker.shared.start(clerk: Clerk.shared)
-        } catch { }
+        } catch {
+            print("❌ loadListings failed: \(error)")
+        }
         isLoading = false
     }
 

@@ -1,10 +1,3 @@
-//
-//  Locationmanager.swift
-//  Roomora
-//
-//  Created by Samuel Ortiz Prada on 20/03/26.
-//
-
 import Foundation
 import CoreLocation
 import Combine
@@ -19,6 +12,7 @@ final class LocationManager: NSObject, ObservableObject, CLLocationManagerDelega
     @Published var authorizationStatus: CLAuthorizationStatus?
     @Published var currentLocation: CLLocation?
     @Published var accuracyAuthorization: CLAccuracyAuthorization?
+
     override init() {
         super.init()
         manager.delegate = self
@@ -27,17 +21,9 @@ final class LocationManager: NSObject, ObservableObject, CLLocationManagerDelega
         manager.pausesLocationUpdatesAutomatically = true
     }
 
-    func requestPermissions() {
-        manager.requestWhenInUseAuthorization()
-    }
-
-    func startUpdatingLocation() {
-        manager.startUpdatingLocation()
-    }
-
-    func stopUpdatingLocation() {
-        manager.stopUpdatingLocation()
-    }
+    func requestPermissions() { manager.requestWhenInUseAuthorization() }
+    func startUpdatingLocation() { manager.startUpdatingLocation() }
+    func stopUpdatingLocation() { manager.stopUpdatingLocation() }
 
     func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
         authorizationStatus = manager.authorizationStatus
@@ -128,22 +114,8 @@ private struct ProximityListingTarget: Hashable {
     let city: String
     let coordinate: CLLocationCoordinate2D
 
-    init?(listing: ListingResponse) {
-        guard let latitude = listing.latitude, let longitude = listing.longitude else { return nil }
-        self.id = listing.id
-        self.title = listing.title
-        self.city = listing.city ?? "Unknown city"
-        self.sector = ProximitySectorResolver.resolve(address: listing.address, city: listing.city)
-        self.coordinate = CLLocationCoordinate2D(latitude: latitude, longitude: longitude)
-    }
-
-    static func == (lhs: Self, rhs: Self) -> Bool {
-        lhs.id == rhs.id
-    }
-
-    func hash(into hasher: inout Hasher) {
-        hasher.combine(id)
-    }
+    static func == (lhs: Self, rhs: Self) -> Bool { lhs.id == rhs.id }
+    func hash(into hasher: inout Hasher) { hasher.combine(id) }
 }
 
 enum ProximityTrackingStatus: Equatable {
@@ -213,9 +185,7 @@ final class ProximityEventStore {
         var events = allEvents()
         events = events.map { event in
             guard ids.contains(event.id) else { return event }
-            var updated = event
-            updated.syncedAt = date
-            return updated
+            var updated = event; updated.syncedAt = date; return updated
         }
         save(events)
     }
@@ -224,9 +194,7 @@ final class ProximityEventStore {
         var events = allEvents()
         events = events.map { event in
             guard ids.contains(event.id) else { return event }
-            var updated = event
-            updated.attempts += 1
-            return updated
+            var updated = event; updated.attempts += 1; return updated
         }
         save(events)
     }
@@ -285,8 +253,23 @@ final class StudentProximityTracker: ObservableObject {
         refreshPendingCount()
     }
 
+    // Geocode each listing asynchronously and build targets
     func configure(with listings: [ListingResponse]) {
-        targets = listings.compactMap(ProximityListingTarget.init)
+        Task {
+            var newTargets: [ProximityListingTarget] = []
+            for listing in listings {
+                guard let coord = await GeocodingService.shared.coordinate(for: listing) else { continue }
+                let target = ProximityListingTarget(
+                    id: listing.id,
+                    title: listing.title,
+                    sector: ProximitySectorResolver.resolve(address: listing.address, city: listing.city),
+                    city: listing.city ?? "Unknown city",
+                    coordinate: coord
+                )
+                newTargets.append(target)
+            }
+            await MainActor.run { self.targets = newTargets }
+        }
         refreshPendingCount()
     }
 
