@@ -48,7 +48,7 @@ struct StudentHomeView: View {
             case .favorites:
                 favoritesContent
             case .activity:
-                myApplicationsContent
+                activityContent
             case .profile:
                 VStack {
                     Spacer()
@@ -73,13 +73,18 @@ struct StudentHomeView: View {
             async let applications: () = vm.loadMyApplications()
             async let favorites: () = vm.loadFavorites()
             async let roommates: () = roommateVM.loadRoommates()
-            _ = await (listings, applications, favorites, roommates)
+            async let matches: () = vm.loadMatches()
+            _ = await (listings, applications, favorites, roommates, matches)
             vm.syncProximityTrackingState()
         }
         .onChange(of: activeNavTab) { _, newTab in
             vm.syncProximityTrackingState()
             if newTab == .activity {
-                Task { await vm.loadMyApplications() }
+                Task {
+                    async let matches: () = vm.loadMatches()
+                    async let applications: () = vm.loadMyApplications()
+                    _ = await (matches, applications)
+                }
             } else if newTab == .favorites {
                 Task { await vm.loadFavorites() }
             }
@@ -107,7 +112,6 @@ struct StudentHomeView: View {
 
     private var discoverContent: some View {
         VStack(spacing: 0) {
-            // Fixed header — never inside ScrollView
             VStack(alignment: .leading, spacing: AppSpacing.sm) {
                 topBar
                 proximityTrackingBanner
@@ -117,7 +121,6 @@ struct StudentHomeView: View {
             }
             .background(Color(.neutral, 100))
 
-            // Scrollable content
             ScrollView {
                 VStack(alignment: .leading, spacing: AppSpacing.lg) {
                     if hasPlace || selectedTab == .roommate {
@@ -253,62 +256,117 @@ struct StudentHomeView: View {
         .padding(.horizontal, AppSpacing.lg)
     }
 
-    // MARK: - My Applications (Activity tab)
+    // MARK: - Activity
 
-    private var myApplicationsContent: some View {
+    private var activityContent: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: AppSpacing.lg) {
                 VStack(alignment: .leading, spacing: AppSpacing.xxs) {
                     Text("My")
                         .font(.h1(.bold))
                         .foregroundStyle(Color(.neutral, 900))
-                    Text("Applications")
+                    Text("Activity")
                         .font(.h1(.bold))
                         .foregroundStyle(Color(.purple, 500))
                 }
                 .padding(.horizontal, AppSpacing.lg)
                 .padding(.top, AppSpacing.md)
 
-                if vm.isLoadingApplications {
-                    ProgressView()
-                        .frame(maxWidth: .infinity)
-                        .padding(.top, AppSpacing.xxl)
-                } else if vm.applications.isEmpty {
-                    VStack(spacing: AppSpacing.sm) {
-                        Image(systemName: "doc.text")
-                            .font(.system(size: 44))
-                            .foregroundStyle(Color(.neutral, 300))
-                        Text("No applications yet")
-                            .font(.body16(.semiBold))
-                            .foregroundStyle(Color(.neutral, 500))
-                        Text("Browse listings and hit Apply Now to get started.")
-                            .font(.body14())
-                            .foregroundStyle(Color(.neutral, 400))
-                            .multilineTextAlignment(.center)
-                    }
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, AppSpacing.xxl)
-                    .padding(.horizontal, AppSpacing.lg)
-                } else {
-                    VStack(spacing: AppSpacing.md) {
-                        ForEach(vm.applications) { app in
-                            Button {
-                                if let listing = vm.listing(for: app) {
-                                    selectedListing = listing
-                                }
-                            } label: {
-                                applicationCard(app)
-                            }
-                            .buttonStyle(.plain)
-                        }
-                    }
-                    .padding(.horizontal, AppSpacing.lg)
+                matchesSection
+
+                if !hasPlace {
+                    applicationsSection
                 }
             }
             .padding(.bottom, AppSpacing.lg)
         }
         .refreshable {
-            await vm.loadMyApplications()
+            async let matches: () = vm.loadMatches()
+            async let applications: () = vm.loadMyApplications()
+            _ = await (matches, applications)
+        }
+    }
+
+    private var matchesSection: some View {
+        VStack(alignment: .leading, spacing: AppSpacing.sm) {
+            Text("MATCHES")
+                .font(.body10(.semiBold))
+                .foregroundStyle(Color(.neutral, 500))
+                .padding(.horizontal, AppSpacing.lg)
+
+            if vm.isLoadingMatches {
+                ProgressView()
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, AppSpacing.lg)
+            } else if vm.matches.isEmpty {
+                VStack(spacing: AppSpacing.sm) {
+                    Image(systemName: "heart")
+                        .font(.system(size: 36))
+                        .foregroundStyle(Color(.neutral, 300))
+                    Text("No matches yet")
+                        .font(.body16(.semiBold))
+                        .foregroundStyle(Color(.neutral, 500))
+                    Text("Like someone and wait for them to like you back.")
+                        .font(.body14())
+                        .foregroundStyle(Color(.neutral, 400))
+                        .multilineTextAlignment(.center)
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, AppSpacing.xl)
+                .padding(.horizontal, AppSpacing.lg)
+            } else {
+                VStack(spacing: AppSpacing.md) {
+                    ForEach(vm.matches) { match in
+                        MatchCard(match: match)
+                    }
+                }
+                .padding(.horizontal, AppSpacing.lg)
+            }
+        }
+    }
+
+    private var applicationsSection: some View {
+        VStack(alignment: .leading, spacing: AppSpacing.sm) {
+            Text("APPLICATIONS")
+                .font(.body10(.semiBold))
+                .foregroundStyle(Color(.neutral, 500))
+                .padding(.horizontal, AppSpacing.lg)
+
+            if vm.isLoadingApplications {
+                ProgressView()
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, AppSpacing.lg)
+            } else if vm.applications.isEmpty {
+                VStack(spacing: AppSpacing.sm) {
+                    Image(systemName: "doc.text")
+                        .font(.system(size: 36))
+                        .foregroundStyle(Color(.neutral, 300))
+                    Text("No applications yet")
+                        .font(.body16(.semiBold))
+                        .foregroundStyle(Color(.neutral, 500))
+                    Text("Browse listings and hit Apply Now to get started.")
+                        .font(.body14())
+                        .foregroundStyle(Color(.neutral, 400))
+                        .multilineTextAlignment(.center)
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, AppSpacing.xl)
+                .padding(.horizontal, AppSpacing.lg)
+            } else {
+                VStack(spacing: AppSpacing.md) {
+                    ForEach(vm.applications) { app in
+                        Button {
+                            if let listing = vm.listing(for: app) {
+                                selectedListing = listing
+                            }
+                        } label: {
+                            applicationCard(app)
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+                .padding(.horizontal, AppSpacing.lg)
+            }
         }
     }
 
