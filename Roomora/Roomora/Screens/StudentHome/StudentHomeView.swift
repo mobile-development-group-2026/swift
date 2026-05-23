@@ -106,47 +106,52 @@ struct StudentHomeView: View {
     // MARK: - Discover Content
 
     private var discoverContent: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: AppSpacing.lg) {
+        VStack(spacing: 0) {
+            // Fixed header — never inside ScrollView
+            VStack(alignment: .leading, spacing: AppSpacing.sm) {
                 topBar
                 proximityTrackingBanner
-
-                // havePlace: roommate feed only, no toggle
-                // needPlace: toggle between roommate feed and listings
                 if !hasPlace {
                     tabPicker
                 }
-
-                if hasPlace || selectedTab == .roommate {
-                    RoommateListView(vm: roommateVM)
-                } else if vm.isLoading {
-                    ProgressView()
-                        .frame(maxWidth: .infinity)
-                        .padding(.top, AppSpacing.xxl)
-                } else if vm.listings.isEmpty {
-                    VStack(spacing: AppSpacing.sm) {
-                        Image(systemName: "house")
-                            .font(.system(size: 40))
-                            .foregroundStyle(Color(.neutral, 300))
-                        Text("No listings available")
-                            .font(.body16(.semiBold))
-                            .foregroundStyle(Color(.neutral, 500))
-                    }
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, AppSpacing.xxl)
-                } else {
-                    listingsGrid
-                }
             }
-            .padding(.bottom, AppSpacing.lg)
-        }
-        .refreshable {
-            if hasPlace || selectedTab == .roommate {
-                await roommateVM.refresh()
-            } else {
-                async let listings: () = vm.loadListings()
-                async let applications: () = vm.loadMyApplications()
-                _ = await (listings, applications)
+            .background(Color(.neutral, 100))
+
+            // Scrollable content
+            ScrollView {
+                VStack(alignment: .leading, spacing: AppSpacing.lg) {
+                    if hasPlace || selectedTab == .roommate {
+                        RoommateListView(vm: roommateVM)
+                    } else if vm.isLoading {
+                        ProgressView()
+                            .frame(maxWidth: .infinity)
+                            .padding(.top, AppSpacing.xxl)
+                    } else if vm.listings.isEmpty {
+                        VStack(spacing: AppSpacing.sm) {
+                            Image(systemName: "house")
+                                .font(.system(size: 40))
+                                .foregroundStyle(Color(.neutral, 300))
+                            Text("No listings available")
+                                .font(.body16(.semiBold))
+                                .foregroundStyle(Color(.neutral, 500))
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, AppSpacing.xxl)
+                    } else {
+                        listingsGrid
+                    }
+                }
+                .padding(.top, AppSpacing.lg)
+                .padding(.bottom, AppSpacing.lg)
+            }
+            .refreshable {
+                if hasPlace || selectedTab == .roommate {
+                    await roommateVM.refresh()
+                } else {
+                    async let listings: () = vm.loadListings()
+                    async let applications: () = vm.loadMyApplications()
+                    _ = await (listings, applications)
+                }
             }
         }
     }
@@ -181,15 +186,12 @@ struct StudentHomeView: View {
                         .foregroundStyle(Color(.neutral, 900))
                 }
             }
-
             Spacer()
-
             ProfileAvatar()
         }
         .padding(.horizontal, AppSpacing.lg)
         .padding(.top, AppSpacing.sm)
     }
-
 
     private var proximityTrackingBanner: some View {
         HStack(alignment: .center, spacing: AppSpacing.sm) {
@@ -219,10 +221,7 @@ struct StudentHomeView: View {
         }
         .padding(.horizontal, AppSpacing.md)
         .padding(.vertical, AppSpacing.sm)
-        .background(
-            RoundedRectangle(cornerRadius: 14)
-                .fill(.white)
-        )
+        .background(RoundedRectangle(cornerRadius: 14).fill(.white))
         .padding(.horizontal, AppSpacing.lg)
     }
 
@@ -237,13 +236,14 @@ struct StudentHomeView: View {
                     Text(tab.rawValue)
                         .font(.body16(.semiBold))
                         .foregroundStyle(selectedTab == tab ? .white : Color(.neutral, 600))
-                        .padding(.vertical, AppSpacing.sm)
+                        .padding(.vertical, 8)
                 }
                 .contentShape(Rectangle())
                 .onTapGesture { selectedTab = tab }
                 .frame(maxWidth: .infinity)
             }
         }
+        .frame(height: 44)
         .padding(4)
         .background(
             RoundedRectangle(cornerRadius: 14)
@@ -258,8 +258,6 @@ struct StudentHomeView: View {
     private var myApplicationsContent: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: AppSpacing.lg) {
-
-                // header
                 VStack(alignment: .leading, spacing: AppSpacing.xxs) {
                     Text("My")
                         .font(.h1(.bold))
@@ -316,23 +314,19 @@ struct StudentHomeView: View {
 
     private func applicationCard(_ app: ApplicationResponse) -> some View {
         HStack(spacing: AppSpacing.md) {
-            // status indicator stripe
             RoundedRectangle(cornerRadius: 3)
                 .fill(statusColor(app.status))
                 .frame(width: 4)
                 .frame(maxHeight: .infinity)
 
             VStack(alignment: .leading, spacing: AppSpacing.xs) {
-                // listing title
                 Text(app.listing?.title ?? "Listing")
                     .font(.body14(.semiBold))
                     .foregroundStyle(Color(.neutral, 900))
                     .lineLimit(1)
 
-                // status pill
                 statusPill(app.status)
 
-                // preferred / confirmed visit datetime
                 if let visit = app.preferredVisitAt {
                     let isConfirmed = app.status == "approved"
                     HStack(spacing: AppSpacing.xxs) {
@@ -350,7 +344,6 @@ struct StudentHomeView: View {
                     }
                 }
 
-                // landlord notes (shown after review)
                 if let notes = app.landlordNotes, !notes.isEmpty {
                     HStack(alignment: .top, spacing: AppSpacing.xxs) {
                         Image(systemName: "bubble.left")
@@ -362,7 +355,6 @@ struct StudentHomeView: View {
                     }
                 }
 
-                // date applied
                 Text("Applied \(formatDate(app.createdAt))")
                     .font(.body10())
                     .foregroundStyle(Color(.neutral, 400))
@@ -371,10 +363,7 @@ struct StudentHomeView: View {
             Spacer()
         }
         .padding(AppSpacing.md)
-        .background(
-            RoundedRectangle(cornerRadius: 16)
-                .fill(.white)
-        )
+        .background(RoundedRectangle(cornerRadius: 16).fill(.white))
         .shadow(color: .black.opacity(0.04), radius: 8, y: 2)
     }
 
@@ -390,9 +379,7 @@ struct StudentHomeView: View {
             .foregroundStyle(Color(config.hue, config.fg))
             .padding(.horizontal, AppSpacing.sm)
             .padding(.vertical, AppSpacing.xxs)
-            .background(
-                Capsule().fill(Color(config.hue, config.bg))
-            )
+            .background(Capsule().fill(Color(config.hue, config.bg)))
     }
 
     private func statusColor(_ status: String) -> Color {
@@ -422,7 +409,6 @@ struct StudentHomeView: View {
             display.dateFormat = "MMM d 'at' h:mm a"
             return display.string(from: date)
         }
-        // fallback: try without fractional seconds (e.g. "2026-04-24T16:17:00Z")
         formatter.formatOptions = [.withInternetDateTime]
         if let date = formatter.date(from: iso) {
             let display = DateFormatter()
@@ -497,7 +483,6 @@ struct StudentHomeView: View {
         let favorited = vm.isFavorited(listing.id)
 
         return VStack(alignment: .leading, spacing: 0) {
-            // cover image
             ZStack(alignment: .topTrailing) {
                 if let urlString = listing.coverPhotoUrl, let url = URL(string: urlString) {
                     CachedAsyncImage(url: url) { image in
@@ -524,7 +509,6 @@ struct StudentHomeView: View {
             }
             .padding(AppSpacing.sm)
 
-            // fixed-height content area — top-aligned so cards are uniform
             VStack(alignment: .leading, spacing: AppSpacing.xs) {
                 HStack(alignment: .firstTextBaseline, spacing: 2) {
                     Text("$\(rentValue)")
@@ -563,10 +547,7 @@ struct StudentHomeView: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         }
         .frame(height: 270)
-        .background(
-            RoundedRectangle(cornerRadius: 16)
-                .fill(.white)
-        )
+        .background(RoundedRectangle(cornerRadius: 16).fill(.white))
         .shadow(color: .black.opacity(0.05), radius: 8, y: 2)
     }
 

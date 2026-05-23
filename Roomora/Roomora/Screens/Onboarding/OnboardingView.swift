@@ -65,18 +65,21 @@ struct OnboardingView: View {
             // step content
             Group {
                 switch vm.step {
-                case 0: BuildYourProfileView(vm: vm.buildProfile, role: session.role ?? "student")
+                case 0:
+                    BuildYourProfileView(vm: vm.buildProfile, role: session.role ?? "student")
                 case 1:
                     if session.role == "landlord" {
                         NewListingView(vm: vm.newListing)
                     } else {
-                        RoommateSituationView(vm: vm.situation)
+                        RoommatePreferencesView(vm: vm.preferences, role: session.role ?? "student")
                     }
+                case 2:
+                    RoommateSituationView(vm: vm.situation)
                 default:
                     if vm.needsPlace {
                         ListingPreferencesView(vm: vm.listingPrefs)
                     } else {
-                        RoommatePreferencesView(vm: vm.preferences, role: session.role ?? "student")
+                        HavePlacePreferencesView(vm: vm.preferences)
                     }
                 }
             }

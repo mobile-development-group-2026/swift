@@ -12,13 +12,13 @@ struct RoommatePreferencesView: View {
                 // header
                 VStack(alignment: .leading, spacing: AppSpacing.xxs) {
                     if isStudent {
-                        Text("Your ideal")
+                        Text("Your")
                             .font(.h1(.bold))
                             .foregroundStyle(Color(.neutral, 900))
-                        Text("roommate")
+                        Text("lifestyle")
                             .font(.h1(.bold))
                             .foregroundStyle(Color(.purple, 500))
-                        Text("Help us find someone you'll actually want to live with.")
+                        Text("Tell us about yourself so we can find your perfect match.")
                             .font(.body14())
                             .foregroundStyle(Color(.neutral, 600))
                             .padding(.top, AppSpacing.xxs)
@@ -50,38 +50,6 @@ struct RoommatePreferencesView: View {
 
     private var studentPreferences: some View {
         VStack(alignment: .leading, spacing: AppSpacing.xl) {
-            // spots available
-            PreferenceSection(icon: "person.2.fill", title: "SPOTS AVAILABLE") {
-                VStack(alignment: .leading, spacing: AppSpacing.xs) {
-                    Text("Roommates needed")
-                        .font(.body12())
-                        .foregroundStyle(Color(.neutral, 600))
-                    HStack(spacing: AppSpacing.md) {
-                        ForEach(1...4, id: \.self) { n in
-                            circleChip("\(n)", selected: vm.spotsAvailable == n) {
-                                vm.spotsAvailable = n
-                            }
-                        }
-                    }
-                    Text("How many spots do you have?")
-                        .font(.body12())
-                        .foregroundStyle(Color(.neutral, 500))
-                }
-            }
-
-            // move-in month
-            PreferenceSection(icon: "calendar.circle.fill", title: "MOVE-IN MONTH") {
-                let months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
-                              "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
-                FlowLayout(spacing: AppSpacing.xs) {
-                    ForEach(months, id: \.self) { month in
-                        selectableChip(month, selected: vm.moveInMonth == month, minWidth: 52) {
-                            vm.moveInMonth = vm.moveInMonth == month ? nil : month
-                        }
-                    }
-                }
-            }
-
             // gender preference
             PreferenceSection(icon: "person.crop.circle.fill", title: "GENDER PREFERENCE") {
                 let options: [(label: String, value: Int)] = [
@@ -97,11 +65,11 @@ struct RoommatePreferencesView: View {
             }
 
             // sleep schedule
-            PreferenceSection(icon: "moon.stars.fill", title: "SLEEP SCHEDULE") {
+            PreferenceSection(icon: "moon.stars.fill", title: "YOUR SLEEP SCHEDULE") {
                 let options: [(emoji: String, label: String, sub: String, value: Int)] = [
                     ("🌅", "Early bird", "Up by 7am", 0),
                     ("🌙", "Night owl", "Up past midnight", 1),
-                    ("🎲", "No preference", "Either works", 2),
+                    ("🎲", "Flexible", "Either works", 2),
                 ]
                 HStack(spacing: AppSpacing.sm) {
                     ForEach(options, id: \.value) { opt in
@@ -118,7 +86,7 @@ struct RoommatePreferencesView: View {
             }
 
             // cleanliness
-            PreferenceSection(icon: "sparkles", title: "CLEANLINESS") {
+            PreferenceSection(icon: "sparkles", title: "YOUR CLEANLINESS LEVEL") {
                 let options: [(emoji: String, label: String, sub: String, value: Int)] = [
                     ("✨", "Very tidy", "Always clean", 0),
                     ("🧹", "Moderate", "Clean enough", 1),
@@ -139,7 +107,7 @@ struct RoommatePreferencesView: View {
             }
 
             // lifestyle
-            PreferenceSection(icon: "heart.fill", title: "LIFESTYLE") {
+            PreferenceSection(icon: "heart.fill", title: "YOUR LIFESTYLE") {
                 let options: [(emoji: String, label: String, sub: String)] = [
                     ("🚭", "Non-smoker", "No smoking indoors"),
                     ("🐾", "Pet-friendly", "Fine with animals"),
