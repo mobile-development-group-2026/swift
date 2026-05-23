@@ -1,11 +1,3 @@
-//
-//  MyProfileView.swift
-//  Roomora
-//
-//  Created by Andy on 23/05/26.
-//
-
-
 import SwiftUI
 import ClerkKit
 import PhotosUI
@@ -36,8 +28,8 @@ struct MyProfileView: View {
                 ) {
                     Task { await vm.save(clerk: clerk, session: session) }
                 }
-                .disabled(vm.isSaving)
-                .opacity(vm.isSaving ? 0.6 : 1)
+                .disabled(vm.isSaving || !vm.isDirty)
+                .opacity((vm.isSaving || !vm.isDirty) ? 0.4 : 1)
                 .padding(AppSpacing.lg)
 
                 if let error = vm.errorMessage {
@@ -49,11 +41,23 @@ struct MyProfileView: View {
                 }
 
                 if vm.saveSuccess {
-                    Text("✓ Profile updated")
-                        .font(.body12(.semiBold))
-                        .foregroundStyle(Color(.green, 600))
+                    if vm.queuedOffline {
+                        HStack(spacing: AppSpacing.xs) {
+                            Image(systemName: "clock.arrow.2.circlepath")
+                                .foregroundStyle(Color(.purple, 500))
+                            Text("Saved locally — will sync when back online")
+                                .font(.body12(.semiBold))
+                                .foregroundStyle(Color(.neutral, 700))
+                        }
                         .padding(.horizontal, AppSpacing.lg)
                         .padding(.bottom, AppSpacing.md)
+                    } else {
+                        Text("✓ Profile updated")
+                            .font(.body12(.semiBold))
+                            .foregroundStyle(Color(.green, 600))
+                            .padding(.horizontal, AppSpacing.lg)
+                            .padding(.bottom, AppSpacing.md)
+                    }
                 }
             }
         }
@@ -413,7 +417,6 @@ struct MyProfileView: View {
                         DatePicker("", selection: $vm.moveInDate, displayedComponents: .date)
                             .labelsHidden()
                             .tint(Color(.purple, 500))
-                            .frame(maxWidth: .infinity, alignment: .leading)
                     }
                 }
             }
@@ -432,7 +435,7 @@ struct MyProfileView: View {
                 .foregroundStyle(Color(.purple, 500))
             Text(title.uppercased())
                 .font(.body10(.semiBold))
-                .foregroundStyle(Color(.neutral, 900))  
+                .foregroundStyle(Color(.neutral, 500))
         }
         .padding(.horizontal, AppSpacing.lg)
         .padding(.top, AppSpacing.lg)

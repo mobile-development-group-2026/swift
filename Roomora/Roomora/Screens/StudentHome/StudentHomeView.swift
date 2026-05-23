@@ -13,17 +13,19 @@ struct StudentHomeView: View {
     @State private var showListingFilter = false
     @State private var roommateFilter = RoommateFilter()
     @State private var listingFilter = ListingFilter()
+    @State private var appliedRoommateFilter = RoommateFilter()
+    @State private var appliedListingFilter = ListingFilter()
 
     private var hasPlace: Bool {
         session.profile?.housingSituation == "havePlace"
     }
 
     private var filteredRoommates: [RoommateStudent] {
-        roommateFilter.apply(to: roommateVM.visibleRoommates)
+        appliedRoommateFilter.apply(to: roommateVM.visibleRoommates)
     }
 
     private var filteredListings: [ListingResponse] {
-        listingFilter.apply(to: vm.listings)
+        appliedListingFilter.apply(to: vm.listings)
     }
 
     enum HomeTab: String, CaseIterable {
@@ -75,7 +77,6 @@ struct StudentHomeView: View {
             async let matches: () = vm.loadMatches()
             _ = await (listings, applications, favorites, roommates, matches)
             vm.syncProximityTrackingState()
-            prefillFilters()
         }
         .onChange(of: activeNavTab) { _, newTab in
             vm.syncProximityTrackingState()
@@ -102,30 +103,14 @@ struct StudentHomeView: View {
             )
         }
         .sheet(isPresented: $showRoommateFilter) {
-            RoommateFilterSheet(filter: $roommateFilter) { }
+            RoommateFilterSheet(filter: $roommateFilter) {
+                appliedRoommateFilter = roommateFilter
+            }
         }
         .sheet(isPresented: $showListingFilter) {
-            ListingFilterSheet(filter: $listingFilter) { }
-        }
-    }
-
-    // MARK: - Pre-fill filters from profile
-
-    private func prefillFilters() {
-        guard let profile = session.profile else { return }
-        if let lp = profile.lifestyleProfile {
-            roommateFilter.sleepSchedule = lp.sleepSchedule
-            if let c = lp.cleanlinessLevel {
-                roommateFilter.cleanlinessLevel = c <= 2 ? 0 : c == 3 ? 1 : 2
+            ListingFilterSheet(filter: $listingFilter) {
+                appliedListingFilter = listingFilter
             }
-            roommateFilter.moveInMonth = lp.moveInMonth
-        }
-        if let sp = profile.studentProfile {
-            roommateFilter.university = sp.university
-        }
-        if let lsp = profile.listingProfile {
-            listingFilter.maxPrice = lsp.maxBudget
-            listingFilter.propertyType = lsp.propertyType
         }
     }
 
@@ -207,7 +192,6 @@ struct StudentHomeView: View {
             }
             Spacer()
 
-            // Filter button
             Button {
                 if hasPlace || selectedTab == .roommate {
                     showRoommateFilter = true
@@ -223,9 +207,8 @@ struct StudentHomeView: View {
                         .background(Circle().fill(.white))
                         .shadow(color: .black.opacity(0.06), radius: 4, y: 2)
 
-                    // Active indicator
-                    if (hasPlace || selectedTab == .roommate) && roommateFilter.isActive ||
-                       selectedTab == .housing && listingFilter.isActive {
+                    if (hasPlace || selectedTab == .roommate) && appliedRoommateFilter.isActive ||
+                       selectedTab == .housing && appliedListingFilter.isActive {
                         Circle()
                             .fill(Color(.purple, 500))
                             .frame(width: 8, height: 8)
