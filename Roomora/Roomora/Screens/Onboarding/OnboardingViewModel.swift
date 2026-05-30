@@ -130,7 +130,7 @@ class OnboardingViewModel {
 
     var canContinue: Bool {
         switch step {
-        case 0: return buildProfile.canContinue
+        case 0: return isLandlord ? buildProfile.selectedHobbies.count > 0 : buildProfile.canContinue
         case 1: return true
         case 2: return isLandlord ? newListing.canContinue : situation.canContinue
         default: return true
